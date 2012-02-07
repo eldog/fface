@@ -1,0 +1,4 @@
+#LWP-Cookies-2.0
+Set-Cookie3: hn=095a47a5cbeefd62f3440ac3f8a9afbbc08a70da; path="/"; domain="hotornot.com"; path_spec; expires="2021-11-05 13:09:07Z"; version=0
+Set-Cookie3: rate_filter="2%3A1"; path="/"; domain="hotornot.com"; path_spec; expires="2011-12-05 14:09:05Z"; version=0
+Set-Cookie3: rqid="anon%3A0340b9c653306d1a67f2b45a68ee8865"; path="/"; domain="hotornot.com"; path_spec; expires="2011-11-05 13:24:05Z"; version=0
