@@ -25,7 +25,8 @@ class TheanoLeastSquaresRegression(object):
         self.m = m
     
     def cost(self, y):
-        return (1 / (2 * self.m)) * T.sum(T.sqr(self.y_pred - y)) + 0.01 * T.sum(T.sqr(self.theta))
+        return (1 / (2 * self.m)) * T.sum(T.sqr(self.y_pred - y)) \
+                + 0.01 * T.sum(T.sqr(self.theta))
 
 
 class LeastSquaresRegression(object):
@@ -43,6 +44,7 @@ class LeastSquaresRegression(object):
         return (1 / self.m) \
                 * ((numpy.dot(self.theta.T, self.x) - self.y) \
                         * self.theta[theta_index]).sum()
+
 
 def theano_sgd(data_file_name, learning_rate=0.13):
     x_train, y_train, x_test, y_test = load_data(data_file_name)
