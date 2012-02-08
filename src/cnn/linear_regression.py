@@ -22,15 +22,18 @@ from theano import tensor as T
 
 class TheanoLeastSquaresRegression(object):
     def __init__(self, x_data, n_features, m):
-        self.theta = theano.shared(numpy.ones((n_features, 1),
+        self.theta = theano.shared(numpy.zeros((n_features, 1),
                 dtype=theano.config.floatX),
                 name='theta')
-        self.y_pred = T.dot(self.theta.T, x_data)
+        self.bias = theano.shared(0.0,
+                    name='bias')
+                        
+        self.y_pred = T.dot(self.theta.T, x_data) + self.bias
         self.m = m
     
     def cost(self, y):
         return (1 / (2 * self.m)) * T.sum(T.sqr(self.y_pred - y)) \
-                + 0.01 * T.sum(T.sqr(self.theta))
+                + 0.1 * T.sum(T.sqr(self.theta))
 
 
 class LeastSquaresRegression(object):
@@ -65,8 +68,9 @@ def theano_sgd(data_file_name, learning_rate=0.000000000000000001):
     test_model = theano.function([], outputs=cost,
                                  givens={x:x_test, y:y_test})
     g_theta = T.grad(cost,tlsr.theta)
-    print(theano.pp(g_theta))
-    updates = {tlsr.theta : tlsr.theta - l_r * g_theta}
+    g_bias = T.grad(cost, tlsr.bias)
+    updates = {tlsr.theta : tlsr.theta - l_r * g_theta,
+               tlsr.bias : tlsr.bias - l_r * g_bias}
     train_model = theano.function([], outputs=cost, updates=updates,
             givens={x:x_train, y:y_train})
 
@@ -81,10 +85,11 @@ def theano_sgd(data_file_name, learning_rate=0.000000000000000001):
             print('iteration %d' % iterations)
             print('cost %f' % current_cost)
         iterations += 1
+    print(current_cost)
 
     validation = test_model()
 
-    return current_cost, tlsr.theta.get_value(), validation
+    return current_cost, tlsr.theta.get_value(), tlsr.bias.get_value(), validation
 
 
 def sgd(data_file_name, learning_rate=0.0001):
@@ -119,12 +124,12 @@ def normalize_zero_mean(data):
     ranges = data.max(axis=1) - data.min(axis=1)
     return (numpy.subtract(data.T, means) / ranges).T
 
-def plot(data_file_name, theta):
+def plot(data_file_name, theta, bias):
     (x_train, y_train), (x_test, y_test), n, m, o = load_images(data_file_name,
             theano_shared=False)
     #plot_data(x_train, y_train, theta)
     #plot_data(x_test, y_test, theta)
-    plot_correlation(x_test, theta, y_test)
+    plot_correlation(x_test, theta, bias, y_test)
 
 def plot_data(x_data, y_data, theta):
     fig = pyplot.figure()
@@ -134,17 +139,16 @@ def plot_data(x_data, y_data, theta):
     pyplot.show()
     x_data = normalize_zero_mean(x_data)
 
-def plot_correlation(x_data, theta, y_data):
-    x_guess = numpy.dot(theta.T, x_data).T
+def plot_correlation(x_data, theta, bias, y_data):
+    x_guess = numpy.dot(theta.T, x_data).T + bias
     pyplot.plot(x_guess, y_data, 'ro')
+    pyplot.axis([-4, 4, -4, 4])
     pyplot.ylabel('real values')
     x = x_guess.T.tolist()
     y = y_data.tolist()
     y = map(float, y)
-    print(x)
-    print(y)
     pearsons = pearsonr(x[0],y) 
-    print(pearsons)
+    print('pearsons coefficient: %f' % pearsons[0])
     pyplot.title('Pearsons: %f' % pearsons[0])
     pyplot.show()
 
@@ -192,7 +196,6 @@ def load_images(hotornot_file_csv, theano_shared=True):
     #test_data[0] = normalize_zero_mean(test_data[0], means, ranges)
 
     mean = train_data[0].mean(axis=1)
-    print(mean)
     #pyplot.imshow(mean.reshape(128,128), cmap=cm.Greys_r)
     #pyplot.show()
     A = (train_data[0].T - mean).T
@@ -234,7 +237,6 @@ def to_face_space(face_space, mean_face, faces):
         m_face = face - mean_face
         f_spaced_faces.append(numpy.dot(face_space.T, m_face))
     f_spaced_faces = numpy.asarray(f_spaced_faces).T
-    print(f_spaced_faces.shape)
 
     return f_spaced_faces
 
@@ -275,20 +277,20 @@ def main(argv=None):
     argument_parser = build_argument_parser()
     args = argument_parser.parse_args(args=argv[1:])
     if args.reg_type == 'theano':
-        print('theano')
-        cost, theta, error = theano_sgd(args.data_file_name,
+        print('Running using theano')
+        cost, theta, bias, error = theano_sgd(args.data_file_name,
                 learning_rate=args.learning_rate)
-        print('cost %f' % cost)
-        print('error %f' % error)
+        print('training cost minimised:\t\t\t %f' % cost)
+        print('test error:\t\t\t %f' % error)
     else:
         print('normal')
         theta = sgd(args.data_file_name)
-    print('THETA')
-    print(theta)
     d_time = datetime.datetime.utcnow().strftime('%H:%M:%S-%d-%m-%Y')
-    with open('out-%s.pickle' % d_time, 'w') as out_file:
-        cPickle.dump(theta, out_file)
-    plot(args.data_file_name, theta)
+    theta_file_name = 'out-%s.pickle' % d_time
+    print('writing weights to %s' % theta_file_name)
+    with open(theta_file_name, 'w') as out_file:
+        cPickle.dump((theta, bias), out_file)
+    plot(args.data_file_name, theta, bias)
 
 if __name__ == '__main__':
     sys.exit(main())
