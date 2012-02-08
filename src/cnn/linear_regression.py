@@ -21,7 +21,21 @@ import theano
 from theano import tensor as T
 
 class TheanoLeastSquaresRegression(object):
+    """Calculates the least-squares error of input data to target data"""
     def __init__(self, x_data, n_features, m):
+        """
+        Create the weights and prediction function.
+        
+        :type x_data: numpy.ndarray
+        :parameter x_data: the input data to be used for the prediction
+                           function.
+
+        :type n_features: int
+        :parameter n_features: the number of features of x_data.
+
+        :type m: int
+        :parameter m: the number of examples in x_data
+        """
         self.theta = theano.shared(numpy.zeros((n_features, 1),
                 dtype=theano.config.floatX),
                 name='theta')
@@ -32,115 +46,60 @@ class TheanoLeastSquaresRegression(object):
         self.m = m
     
     def cost(self, y):
+        """
+        Returns the cost of the current prediction function.
+        """
         return (1 / (2 * self.m)) * T.sum(T.sqr(self.y_pred - y)) \
                 + 0.1 * T.sum(T.sqr(self.theta))
 
 
-class LeastSquaresRegression(object):
-    def __init__(self, x_data, y_data):
-        self.x = x_data
-        self.y = y_data
-        self.n, self.m = x_data.shape
-        self.theta = numpy.ones((self.n, 1))
+class EigenFace(object):
+    """Calculated the eigenfaces of a given set of faces"""
+
+    def __init__(self, faces, n_eigs=100):
+        """
+        Create the facespace of a given set of faces.
+
+        :type faces: numpy.ndarray
+        :param faces: an n x m dimensional array of face image data
+
+        :type n_eigs: int
+        :param n_eigs: the number of dimensions that the facespace should
+                       have. It will be a n_eigs x m dimensional array.
+        """
+        # convert face data to correct type for theano to use gpu
+        faces = numpy.asarray(faces, dtype=theano.config.floatX)
         
-    def cost(self):
-        return (1 / (2 * self.m )) \
-                * ((numpy.dot(self.theta.T, self.x) - self.y) ** 2).sum()
+        # calculate the mean face, Psi
+        self.mean_face = faces.mean(axis=1)
+        # create the face space, i.e., the eigenvectors of the faces
+        face_diffs = (faces.T - self.mean_face).T
+        x = T.matrix()
+        covar = T.dot(x.T, x)
+        f_covar = theano.function([x], covar) 
+        sigma = f_covar(face_diffs)
+        u, s, v = numpy.linalg.svd(sigma)
+        # take the first n_eigs eigenfaces for facespace
+        self.face_space = numpy.dot(face_diffs, u)[:,:n_eigs]
 
-    def derivative_cost_wrt_theta(self, theta_index):
-        return (1 / self.m) \
-                * ((numpy.dot(self.theta.T, self.x) - self.y) \
-                        * self.theta[theta_index]).sum()
+    def project_to_face_space(self, faces):
+        """
+        Returns a set of faces projected into the face space
 
+        :type faces: numpy.ndarray
+        :param faces: an n x p dimensional array of face image data
+        """
+        f_spaced_faces = []
+        for face in faces.T:
+            face_diff = face - self.mean_face
+            f_spaced_faces.append(numpy.dot(self.face_space.T, face_diff))
+        return numpy.asarray(f_spaced_faces).T
 
-def theano_sgd(data_file_name, learning_rate=0.000000000000000001):
-    (x_train, y_train), (x_test, y_test), n, m, o = load_images(data_file_name)
-    n_training_examples = m
-    n_test_examples = o
-
-    x = T.matrix('x')
-    y = T.vector('y')
-
-    l_r = theano.shared(learning_rate)
-
-    tlsr = TheanoLeastSquaresRegression(x, n, n_training_examples)
-    cost = tlsr.cost(y)
-    test_model = theano.function([], outputs=cost,
-                                 givens={x:x_test, y:y_test})
-    g_theta = T.grad(cost,tlsr.theta)
-    g_bias = T.grad(cost, tlsr.bias)
-    updates = {tlsr.theta : tlsr.theta - l_r * g_theta,
-               tlsr.bias : tlsr.bias - l_r * g_bias}
-    train_model = theano.function([], outputs=cost, updates=updates,
-            givens={x:x_train, y:y_train})
-
-    current_cost = train_model()
-    print(current_cost)
-    old_cost = 0
-    iterations = 0
-    while ((abs(current_cost- old_cost)) > 0.000001):
-        old_cost = current_cost
-        current_cost = train_model()
-        if iterations % 1000 == 0:
-            print('iteration %d' % iterations)
-            print('cost %f' % current_cost)
-        iterations += 1
-    print(current_cost)
-
-    validation = test_model()
-
-    return current_cost, tlsr.theta.get_value(), tlsr.bias.get_value(), validation
-
-
-def sgd(data_file_name, learning_rate=0.0001):
-    x_data, y_data, o, p = load_data(data_file_name)
-    print('sgd', x_data)
-    lsr = LeastSquaresRegression(x_data, y_data)
-    current_cost = lsr.cost()
-    print(current_cost)
-    old_cost = 0
-    iterations = 0 
-    while ((abs(current_cost - old_cost)) > 0.00001):
-        print('iteration %d' % iterations)
-        theta_tmp = lsr.theta
-        theta_tmp[0] =  (1 / lsr.m) * (numpy.dot(lsr.theta.T, lsr.x) - lsr.y).sum() 
-        for j in xrange(1, lsr.theta.shape[0]):
-            new_theta_value = theta_tmp[j] \
-                           - learning_rate \
-                           * lsr.derivative_cost_wrt_theta(j)
-            theta_tmp[j] = new_theta_value
-        old_theta = lsr.theta
-        lsr.theta = theta_tmp
-        old_cost = current_cost
-        current_cost = lsr.cost()
-        print(theta_tmp)
-        print('cost: %f' % current_cost)
-        iterations += 1
-
-    return lsr.theta
-
-def normalize_zero_mean(data):
-    means = data.mean(axis=1)
-    ranges = data.max(axis=1) - data.min(axis=1)
-    return (numpy.subtract(data.T, means) / ranges).T
-
-def plot(data_file_name, theta, bias):
-    (x_train, y_train), (x_test, y_test), n, m, o = load_images(data_file_name,
-            theano_shared=False)
-    #plot_data(x_train, y_train, theta)
-    #plot_data(x_test, y_test, theta)
-    plot_correlation(x_test, theta, bias, y_test)
-
-def plot_data(x_data, y_data, theta):
-    fig = pyplot.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot(x_data[1,:], x_data[2,:], y_data, linestyle="none", marker="o", mfc="none", markeredgecolor="red")
-    ax.plot_wireframe(x_data[1,:], x_data[2,:], numpy.dot(theta.T, x_data).T)
-    pyplot.show()
-    x_data = normalize_zero_mean(x_data)
 
 def plot_correlation(x_data, theta, bias, y_data):
-    x_guess = numpy.dot(theta.T, x_data).T + bias
+    print(x_data.shape)
+    print(theta.shape)
+    x_guess = (numpy.dot(theta.T, x_data) + bias).T
     pyplot.plot(x_guess, y_data, 'ro')
     pyplot.axis([-4, 4, -4, 4])
     pyplot.ylabel('real values')
@@ -158,7 +117,6 @@ def load_images(hotornot_file_csv, theano_shared=True):
     """
     hotornot_dir = os.path.join(os.path.dirname(__file__),
             '../../../data/eccv2010_beauty_data/hotornot_face')
-
     train_data = [[], []]
     test_data = [[], []]
     with open(hotornot_file_csv) as hotornot_csv:
@@ -178,95 +136,92 @@ def load_images(hotornot_file_csv, theano_shared=True):
                 append_row_to_data(test_data, row)
             else:
                 raise ValueError('only test or train allowed in input')
-
-    def to_theano_shared(data):
-        data[0] = numpy.concatenate(
-                    (numpy.ones((1, (data[0].shape[1]))), data[0]))
-        data[1] = numpy.asarray(data[1])
-        if theano_shared:
-            data[0] = theano.shared(
-                numpy.asarray(data[0], dtype=theano.config.floatX))
-            data[1] = theano.shared(
-                numpy.asarray(data[1], dtype=theano.config.floatX))
-
-    train_data[0] = numpy.asarray(train_data[0], dtype=theano.config.floatX).T
-    test_data[0] = numpy.asarray(test_data[0], dtype=theano.config.floatX).T
-
-    #train_data[0] = normalize_zero_mean(train_data[0], means, ranges)
-    #test_data[0] = normalize_zero_mean(test_data[0], means, ranges)
-
-    mean = train_data[0].mean(axis=1)
-    #pyplot.imshow(mean.reshape(128,128), cmap=cm.Greys_r)
-    #pyplot.show()
-    A = (train_data[0].T - mean).T
-
-    print('sigma time baby')
-    x = T.matrix()
     
-    covar = T.dot(x.T, x)
-
-    f_covar = theano.function([x], covar) 
-
-    sigma = f_covar(A)
-    print('here we go')
-    u, s, v = numpy.linalg.svd(sigma)
-    print('done')
-    face_space = numpy.dot(A, u)
-    u_range = face_space[:,:100]
-    print(u_range.shape)
-    #pyplot.imshow(u_range.T[4].reshape(128,128), cmap=cm.Greys_r)
-
-    #pyplot.show()
-    #exit()
-    train_data[0] = to_face_space(u_range, mean, train_data[0])
-    test_data[0] = to_face_space(u_range, mean, test_data[0])
-    n, m = train_data[0].shape
-    n += 1 # we're going to add the ones on
-    o = test_data[0].shape[1]
-    to_theano_shared(train_data)
-    to_theano_shared(test_data)
-
-    return train_data, test_data, n, m, o
     
-def to_face_space(face_space, mean_face, faces):
-    """
-    Projects a set of faces into face space
-    """
-    f_spaced_faces = []
-    for face in faces.T:
-        m_face = face - mean_face
-        f_spaced_faces.append(numpy.dot(face_space.T, m_face))
-    f_spaced_faces = numpy.asarray(f_spaced_faces).T
+    train_data[0] = numpy.asarray(train_data[0]).T
+    train_data[1] = numpy.asarray(train_data[1]).T
+    test_data[0] = numpy.asarray(test_data[0]).T
+    test_data[1] = numpy.asarray(test_data[1]).T
+    return train_data, test_data 
 
-    return f_spaced_faces
-
-
-def load_data(data_file_name):
-    """
-    Load the data assuming the label is the last on the row
-    :type data_file_name: str
-    :param data_file_name: the name of the file containing data
-    """
-    data = numpy.genfromtxt(data_file_name, dtype=int, delimiter=',')
-    x_data = data[:, :-1].T
-    x_data = normalize_zero_mean(x_data)
-    # add the ones
-    x_data = numpy.concatenate((numpy.ones((1, (x_data.shape[1]))), x_data))
-    y_data  = data[:, -1]
-    middle = len(y_data) / 2
-    x_train = x_data[:, :middle]
-    x_test = x_data[:, middle:]
-    y_train = y_data[:middle]
-    y_test = y_data[middle:]
-    return x_train, y_train, x_test, y_test
+def to_theano_shared(data):
+    
+    data[0] = theano.shared(numpy.asarray(data[0], dtype=theano.config.floatX))
+    data[1] = theano.shared(numpy.asarray(data[1], dtype=theano.config.floatX))
+    return data
 
 default_file_name = os.path.join(os.path.dirname(__file__),
             '../../../data/eccv2010_beauty_data/eccv2010_split1.csv')
 
+def prepend_ones(data):
+    return numpy.concatenate((numpy.ones((1, (data.shape[1])), 
+                                dtype=theano.config.floatX), data))
+
+
+def eigface_sgd(data_file_name, learning_rate=0.000000000000000001):
+    train_data, test_data = load_images(data_file_name)
+    eig_face = EigenFace(train_data[0])
+    train_data[0] = eig_face.project_to_face_space(train_data[0])
+    test_data[0] = eig_face.project_to_face_space(test_data[0])
+    n_features, n_training_examples = train_data[0].shape
+    n_features += 1 # we're going to add the ones on
+    n_test_examples = test_data[0].shape[1]
+    train_data[0] = prepend_ones(train_data[0])
+    test_data[0] = prepend_ones(test_data[0])
+    train_data = to_theano_shared(train_data)
+    test_data = to_theano_shared(test_data)
+
+    x_train, y_train = train_data
+    x_test, y_test = test_data
+
+    x = T.dmatrix('x')
+    y = T.dvector('y')
+
+    tlsr = TheanoLeastSquaresRegression(x, n_features, n_training_examples)
+    cost = tlsr.cost(y)
+    test_model = theano.function([], outputs=cost, givens={x:x_test, y:y_test})
+    
+    g_theta = T.grad(cost, tlsr.theta)
+    g_bias = T.grad(cost, tlsr.bias)
+    updates = {
+                tlsr.theta : tlsr.theta - learning_rate * g_theta,
+                tlsr.bias : tlsr.bias - learning_rate * g_bias
+              }
+    train_model = theano.function([], outputs=cost, updates=updates,
+                                  givens={x:x_train, y:y_train})
+
+    current_cost = train_model()
+    print(current_cost)
+    old_cost = 0
+    iterations = 0
+    while ((abs(current_cost- old_cost)) > 0.000001):
+        old_cost = current_cost
+        current_cost = train_model()
+        if iterations % 1000 == 0:
+            print('iteration %d' % iterations)
+            print('cost %f' % current_cost)
+        iterations += 1
+
+    error = test_model()
+    theta = tlsr.theta.get_value()
+    bias = tlsr.theta.get_value()
+
+    # Print the results
+    print('training cost minimised:\t\t %f' % current_cost)
+    print('test error:\t\t\t %f' % error)
+
+    # Save our weights should we ever need them again
+    d_time = datetime.datetime.utcnow().strftime('%H:%M:%S-%d-%m-%Y')
+    theta_file_name = 'out-%s.pickle' % d_time
+    print('writing weights to %s' % theta_file_name)
+    with open(theta_file_name, 'w') as out_file:
+        cPickle.dump((theta, bias), out_file)
+
+    plot_correlation(x_test.get_value(), theta, bias, y_test.get_value())
+
 def build_argument_parser():
     argument_parser = ArgumentParser()
     argument_parser.add_argument('--data-file-name', default=default_file_name)
-    argument_parser.add_argument('--reg-type', default='theano')
     argument_parser.add_argument('--learning-rate', type=float,
             default=0.000000000000000001)
     return argument_parser
@@ -276,21 +231,7 @@ def main(argv=None):
         argv = sys.argv 
     argument_parser = build_argument_parser()
     args = argument_parser.parse_args(args=argv[1:])
-    if args.reg_type == 'theano':
-        print('Running using theano')
-        cost, theta, bias, error = theano_sgd(args.data_file_name,
-                learning_rate=args.learning_rate)
-        print('training cost minimised:\t\t\t %f' % cost)
-        print('test error:\t\t\t %f' % error)
-    else:
-        print('normal')
-        theta = sgd(args.data_file_name)
-    d_time = datetime.datetime.utcnow().strftime('%H:%M:%S-%d-%m-%Y')
-    theta_file_name = 'out-%s.pickle' % d_time
-    print('writing weights to %s' % theta_file_name)
-    with open(theta_file_name, 'w') as out_file:
-        cPickle.dump((theta, bias), out_file)
-    plot(args.data_file_name, theta, bias)
-
+    eigface_sgd(args.data_file_name, learning_rate=args.learning_rate)
+    
 if __name__ == '__main__':
     sys.exit(main())
