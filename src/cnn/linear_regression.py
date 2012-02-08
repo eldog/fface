@@ -50,7 +50,7 @@ class LeastSquaresRegression(object):
                         * self.theta[theta_index]).sum()
 
 
-def theano_sgd(data_file_name, learning_rate=0.13):
+def theano_sgd(data_file_name, learning_rate=0.000000000000000001):
     (x_train, y_train), (x_test, y_test), n, m, o = load_images(data_file_name)
     n_training_examples = m
     n_test_examples = o
@@ -74,13 +74,12 @@ def theano_sgd(data_file_name, learning_rate=0.13):
     print(current_cost)
     old_cost = 0
     iterations = 0
-    while ((abs(current_cost- old_cost)) > 0.00001):
-        if iterations > 300:
-            l_r = learning_rate * 100
-        print('iteration %d' % iterations)
+    while ((abs(current_cost- old_cost)) > 0.000001):
         old_cost = current_cost
         current_cost = train_model()
-        print('cost %f' % current_cost)
+        if iterations % 1000 == 0:
+            print('iteration %d' % iterations)
+            print('cost %f' % current_cost)
         iterations += 1
 
     validation = test_model()
@@ -266,7 +265,8 @@ def build_argument_parser():
     argument_parser = ArgumentParser()
     argument_parser.add_argument('--data-file-name', default=default_file_name)
     argument_parser.add_argument('--reg-type', default='theano')
-    argument_parser.add_argument('--learning-rate', type=float, default=0.13)
+    argument_parser.add_argument('--learning-rate', type=float,
+            default=0.000000000000000001)
     return argument_parser
 
 def main(argv=None):
