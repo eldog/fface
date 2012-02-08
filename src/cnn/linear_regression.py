@@ -4,11 +4,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import cPickle
 import csv
+import datetime
+import os
 import sys
 
 from argparse import ArgumentParser
 
+import Image
 from matplotlib import cm, pyplot
 from mpl_toolkits.mplot3d import Axes3D
 import numpy
@@ -47,25 +51,19 @@ class LeastSquaresRegression(object):
 
 
 def theano_sgd(data_file_name, learning_rate=0.13):
-    x_train, y_train, x_test, y_test = load_data(data_file_name)
-    n_training_examples = x_train.shape[1]
-    n_test_examples = x_test.shape[1]
+    (x_train, y_train), (x_test, y_test), n, m, o = load_images(data_file_name)
+    n_training_examples = m
+    n_test_examples = o
 
-    x_train = theano.shared(numpy.asarray(x_train, dtype=theano.config.floatX))
-    y_train = theano.shared(numpy.asarray(y_train, dtype=theano.config.floatX))
-    x_test = theano.shared(numpy.asarray(x_test, dtype=theano.config.floatX))
-    y_test = theano.shared(numpy.asarray(y_test, dtype=theano.config.floatX))
-
-    x = T.fmatrix('x')
-    y = T.fvector('y')
-
+    x = T.matrix('x')
+    y = T.vector('y')
 
     l_r = theano.shared(learning_rate)
 
-    tlsr = TheanoLeastSquaresRegression(x, 3, n_training_examples)
+    tlsr = TheanoLeastSquaresRegression(x, n, n_training_examples)
     cost = tlsr.cost(y)
     test_model = theano.function([], outputs=cost,
-                                 givens={x_data:x_test, y:y_test})
+                                 givens={x:x_test, y:y_test})
     g_theta = T.grad(cost,tlsr.theta)
     print(theano.pp(g_theta))
     updates = {tlsr.theta : tlsr.theta - l_r * g_theta}
@@ -82,8 +80,7 @@ def theano_sgd(data_file_name, learning_rate=0.13):
         print('iteration %d' % iterations)
         old_cost = current_cost
         current_cost = train_model()
-        print(current_cost)
-        print(tlsr.theta.get_value())
+        print('cost %f' % current_cost)
         iterations += 1
 
     validation = test_model()
@@ -112,8 +109,8 @@ def sgd(data_file_name, learning_rate=0.0001):
         lsr.theta = theta_tmp
         old_cost = current_cost
         current_cost = lsr.cost()
-        print(current_cost)
         print(theta_tmp)
+        print('cost: %f' % current_cost)
         iterations += 1
 
     return lsr.theta
@@ -124,9 +121,10 @@ def normalize_zero_mean(data):
     return (numpy.subtract(data.T, means) / ranges).T
 
 def plot(data_file_name, theta):
-    x_train, y_train, x_test, y_test = load_data(data_file_name)
-    plot_data(x_train, y_train, theta)
-    plot_data(x_test, y_test, theta)
+    (x_train, y_train), (x_test, y_test), n, m, o = load_images(data_file_name,
+            theano_shared=False)
+    #plot_data(x_train, y_train, theta)
+    #plot_data(x_test, y_test, theta)
     plot_correlation(x_test, theta, y_test)
 
 def plot_data(x_data, y_data, theta):
@@ -143,12 +141,104 @@ def plot_correlation(x_data, theta, y_data):
     pyplot.ylabel('real values')
     x = x_guess.T.tolist()
     y = y_data.tolist()
-    print(x[0])
+    y = map(float, y)
+    print(x)
     print(y)
     pearsons = pearsonr(x[0],y) 
     print(pearsons)
-    #plt.title('Pearsons: %f' % pearsons)
+    pyplot.title('Pearsons: %f' % pearsons[0])
     pyplot.show()
+
+def load_images(hotornot_file_csv, theano_shared=True):
+    """
+    Assumes the images are in an immediate sub-directory if the csv file.
+    """
+    hotornot_dir = os.path.join(os.path.dirname(__file__),
+            '../../../data/eccv2010_beauty_data/hotornot_face')
+
+    train_data = [[], []]
+    test_data = [[], []]
+    with open(hotornot_file_csv) as hotornot_csv:
+        reader = csv.reader(hotornot_csv)
+        def append_row_to_data(data, row):
+            def get_array_from_image(image_name):
+                image = Image.open(os.path.join(hotornot_dir, image_name))
+                luma = image.convert('L')
+                return numpy.asarray(luma).ravel()
+            # append the x_data
+            data[0].append(get_array_from_image(row[0]))
+            data[1].append(row[1])
+        for row in reader:
+            if row[2] == 'train':
+                append_row_to_data(train_data, row)
+            elif row[2] == 'test':
+                append_row_to_data(test_data, row)
+            else:
+                raise ValueError('only test or train allowed in input')
+
+    def to_theano_shared(data):
+        data[0] = numpy.concatenate(
+                    (numpy.ones((1, (data[0].shape[1]))), data[0]))
+        data[1] = numpy.asarray(data[1])
+        if theano_shared:
+            data[0] = theano.shared(
+                numpy.asarray(data[0], dtype=theano.config.floatX))
+            data[1] = theano.shared(
+                numpy.asarray(data[1], dtype=theano.config.floatX))
+
+    train_data[0] = numpy.asarray(train_data[0], dtype=theano.config.floatX).T
+    test_data[0] = numpy.asarray(test_data[0], dtype=theano.config.floatX).T
+
+    #train_data[0] = normalize_zero_mean(train_data[0], means, ranges)
+    #test_data[0] = normalize_zero_mean(test_data[0], means, ranges)
+
+    mean = train_data[0].mean(axis=1)
+    print(mean)
+    #pyplot.imshow(mean.reshape(128,128), cmap=cm.Greys_r)
+    #pyplot.show()
+    A = (train_data[0].T - mean).T
+
+    print('sigma time baby')
+    x = T.matrix()
+    
+    covar = T.dot(x.T, x)
+
+    f_covar = theano.function([x], covar) 
+
+    sigma = f_covar(A)
+    print('here we go')
+    u, s, v = numpy.linalg.svd(sigma)
+    print('done')
+    face_space = numpy.dot(A, u)
+    u_range = face_space[:,:100]
+    print(u_range.shape)
+    #pyplot.imshow(u_range.T[4].reshape(128,128), cmap=cm.Greys_r)
+
+    #pyplot.show()
+    #exit()
+    train_data[0] = to_face_space(u_range, mean, train_data[0])
+    test_data[0] = to_face_space(u_range, mean, test_data[0])
+    n, m = train_data[0].shape
+    n += 1 # we're going to add the ones on
+    o = test_data[0].shape[1]
+    to_theano_shared(train_data)
+    to_theano_shared(test_data)
+
+    return train_data, test_data, n, m, o
+    
+def to_face_space(face_space, mean_face, faces):
+    """
+    Projects a set of faces into face space
+    """
+    f_spaced_faces = []
+    for face in faces.T:
+        m_face = face - mean_face
+        f_spaced_faces.append(numpy.dot(face_space.T, m_face))
+    f_spaced_faces = numpy.asarray(f_spaced_faces).T
+    print(f_spaced_faces.shape)
+
+    return f_spaced_faces
+
 
 def load_data(data_file_name):
     """
@@ -169,10 +259,14 @@ def load_data(data_file_name):
     y_test = y_data[middle:]
     return x_train, y_train, x_test, y_test
 
+default_file_name = os.path.join(os.path.dirname(__file__),
+            '../../../data/eccv2010_beauty_data/eccv2010_split1.csv')
+
 def build_argument_parser():
     argument_parser = ArgumentParser()
-    argument_parser.add_argument('--data-file-name', default='ex1data2.txt')
+    argument_parser.add_argument('--data-file-name', default=default_file_name)
     argument_parser.add_argument('--reg-type', default='theano')
+    argument_parser.add_argument('--learning-rate', type=float, default=0.13)
     return argument_parser
 
 def main(argv=None):
@@ -182,13 +276,18 @@ def main(argv=None):
     args = argument_parser.parse_args(args=argv[1:])
     if args.reg_type == 'theano':
         print('theano')
-        cost, theta, error = theano_sgd(args.data_file_name)
-        print('cost %f', cost)
-        print('error %f', error)
+        cost, theta, error = theano_sgd(args.data_file_name,
+                learning_rate=args.learning_rate)
+        print('cost %f' % cost)
+        print('error %f' % error)
     else:
         print('normal')
         theta = sgd(args.data_file_name)
+    print('THETA')
     print(theta)
+    d_time = datetime.datetime.utcnow().strftime('%H:%M:%S-%d-%m-%Y')
+    with open('out-%s.pickle' % d_time, 'w') as out_file:
+        cPickle.dump(theta, out_file)
     plot(args.data_file_name, theta)
 
 if __name__ == '__main__':
