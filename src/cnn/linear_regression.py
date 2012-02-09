@@ -84,6 +84,8 @@ class EigenFace(object):
         logging.info('performing singular value decomposition')
         u, s, v = numpy.linalg.svd(sigma)
         # take the first n_eigs eigenfaces for facespace
+        logging.info('creating facespace')
+        logging.debug('choosing %d eigenfaces' % n_eigs)
         self.face_space = numpy.dot(face_diffs, u)[:,:n_eigs]
 
     def project_to_face_space(self, faces):
@@ -99,19 +101,36 @@ class EigenFace(object):
             f_spaced_faces.append(numpy.dot(self.face_space.T, face_diff))
         return numpy.asarray(f_spaced_faces).T
 
+image_dir = os.path.join(os.path.dirname(__file__),
+                         '../../../img/')
 
-def plot_correlation(x_data, theta, bias, y_data):
+def append_timestamp_to_file_name(file_name):
+    d_time = datetime.datetime.utcnow().strftime('%H:%M:%S-%d-%m-%Y')
+    return ('%s-%s' % (file_name, d_time))
+
+def plot_correlation(x_data, theta, bias, y_data, data_file_name,
+                     display=False):
+    data_file_name = os.path.basename(data_file_name)
     x_guess = (numpy.dot(theta.T, x_data) + bias).T
-    pyplot.plot(x_guess, y_data, 'ro')
+    pyplot.plot(y_data, x_guess,'ro')
     pyplot.axis([-4, 4, -4, 4])
-    pyplot.ylabel('real values')
+    pyplot.xlabel('human score')
+    pyplot.ylabel('machine score')
     x = x_guess.T.tolist()
     y = y_data.tolist()
     y = map(float, y)
     pearsons = pearsonr(x[0],y) 
     logging.info('pearsons coefficient: %f' % pearsons[0])
-    pyplot.title('Pearsons: %f' % pearsons[0])
-    pyplot.show()
+    pyplot.title("Scatter of scores on data set %s with pearsons correlation %f" % 
+                 (data_file_name, pearsons[0]), fontsize='small')
+    if display:
+        pyplot.show()
+    figure_file_name = os.path.join(image_dir, 
+                                    '%s.png' % 
+                                    append_timestamp_to_file_name('figure'))
+    logging.info('writing scatterplot of results to %s' % figure_file_name)
+    with open(figure_file_name, 'w') as figure_file:
+        pyplot.savefig(figure_file, format='png')
 
 def load_images(hotornot_file_csv, theano_shared=True):
     """
@@ -161,10 +180,10 @@ def prepend_ones(data):
                                 dtype=theano.config.floatX), data))
 
 
-def eigface_sgd(data_file_name, learning_rate=0.000000000000000001, 
-                reg_lambda=0.1):
+def eigface_sgd(data_file_name, n_eigs=100, learning_rate=0.000000000000000001, 
+                reg_lambda=0.1, display=False):
     train_data, test_data = load_images(data_file_name)
-    eig_face = EigenFace(train_data[0])
+    eig_face = EigenFace(train_data[0], n_eigs=n_eigs)
     logging.info('projecting data to face_space')
     train_data[0] = eig_face.project_to_face_space(train_data[0])
     test_data[0] = eig_face.project_to_face_space(test_data[0])
@@ -218,21 +237,23 @@ def eigface_sgd(data_file_name, learning_rate=0.000000000000000001,
     logging.info('test error: %f' % error)
 
     # Save our weights should we ever need them again
-    d_time = datetime.datetime.utcnow().strftime('%H:%M:%S-%d-%m-%Y')
-    theta_file_name = 'out-%s.pickle' % d_time
+    theta_file_name = '%s.pickle' % append_timestamp_to_file_name('weights')
     logging.info('writing weights to %s' % theta_file_name)
     with open(theta_file_name, 'w') as out_file:
         cPickle.dump((theta, bias), out_file)
 
-    plot_correlation(x_test.get_value(), theta, bias, y_test.get_value())
+    plot_correlation(x_test.get_value(), theta, bias, y_test.get_value(),
+                     data_file_name, display=display)
 
 def build_argument_parser():
     argument_parser = ArgumentParser()
     argument_parser.add_argument('--data-file-name', default=default_file_name)
+    argument_parser.add_argument('--n-eigs', type=int, default=100)
     argument_parser.add_argument('--learning-rate', type=float,
-            default=0.000000000000000001)
+                                 default=0.000000000000000001)
     argument_parser.add_argument('--reg-lambda', type=float, default=0.1)
     argument_parser.add_argument('--log-level', default='INFO')
+    argument_parser.add_argument('--display')
     return argument_parser
 
 def main(argv=None):
@@ -245,8 +266,9 @@ def main(argv=None):
         raise ValueError('Invalid log level: %s' % loglevel)
     logging.basicConfig(format='%(levelname)s: %(asctime)s: %(message)s',
                         level=numeric_level)
-    eigface_sgd(args.data_file_name, learning_rate=args.learning_rate,
-            reg_lambda=args.reg_lambda)
+    eigface_sgd(args.data_file_name, n_eigs=args.n_eigs, 
+                learning_rate=args.learning_rate, reg_lambda=args.reg_lambda,
+                display=args.display)
     
 if __name__ == '__main__':
     sys.exit(main())
