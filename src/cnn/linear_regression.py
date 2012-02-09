@@ -22,7 +22,7 @@ from theano import tensor as T
 
 class TheanoLeastSquaresRegression(object):
     """Calculates the least-squares error of input data to target data"""
-    def __init__(self, x_data, n_features, m):
+    def __init__(self, x_data, n_features, m, reg_lambda=0.1):
         """
         Create the weights and prediction function.
         
@@ -44,13 +44,14 @@ class TheanoLeastSquaresRegression(object):
                         
         self.y_pred = T.dot(self.theta.T, x_data) + self.bias
         self.m = m
+        self.reg_lambda = reg_lambda
     
     def cost(self, y):
         """
         Returns the cost of the current prediction function.
         """
         return (1 / (2 * self.m)) * T.sum(T.sqr(self.y_pred - y)) \
-                + 0.1 * T.sum(T.sqr(self.theta))
+                + self.reg_lambda * T.sum(T.sqr(self.theta))
 
 
 class EigenFace(object):
@@ -138,10 +139,10 @@ def load_images(hotornot_file_csv, theano_shared=True):
                 raise ValueError('only test or train allowed in input')
     
     
-    train_data[0] = numpy.asarray(train_data[0]).T
-    train_data[1] = numpy.asarray(train_data[1]).T
-    test_data[0] = numpy.asarray(test_data[0]).T
-    test_data[1] = numpy.asarray(test_data[1]).T
+    train_data[0] = numpy.asarray(train_data[0], dtype=theano.config.floatX).T
+    train_data[1] = numpy.asarray(train_data[1], dtype=theano.config.floatX).T
+    test_data[0] = numpy.asarray(test_data[0], dtype=theano.config.floatX).T
+    test_data[1] = numpy.asarray(test_data[1], dtype=theano.config.floatX).T
     return train_data, test_data 
 
 def to_theano_shared(data):
@@ -158,7 +159,8 @@ def prepend_ones(data):
                                 dtype=theano.config.floatX), data))
 
 
-def eigface_sgd(data_file_name, learning_rate=0.000000000000000001):
+def eigface_sgd(data_file_name, learning_rate=0.000000000000000001, 
+                reg_lambda=0.1):
     train_data, test_data = load_images(data_file_name)
     eig_face = EigenFace(train_data[0])
     train_data[0] = eig_face.project_to_face_space(train_data[0])
@@ -174,12 +176,15 @@ def eigface_sgd(data_file_name, learning_rate=0.000000000000000001):
     x_train, y_train = train_data
     x_test, y_test = test_data
 
-    x = T.dmatrix('x')
-    y = T.dvector('y')
+    x = T.matrix('x')
+    y = T.vector('y')
 
-    tlsr = TheanoLeastSquaresRegression(x, n_features, n_training_examples)
+    tlsr = TheanoLeastSquaresRegression(x, n_features, n_training_examples,
+                                        reg_lambda=reg_lambda)
     cost = tlsr.cost(y)
-    test_model = theano.function([], outputs=cost, givens={x:x_test, y:y_test})
+    print(x_test)
+    test_model = theano.function([], outputs=cost, givens={x:x_test[:],
+        y:y_test[:]})
     
     g_theta = T.grad(cost, tlsr.theta)
     g_bias = T.grad(cost, tlsr.bias)
@@ -188,7 +193,7 @@ def eigface_sgd(data_file_name, learning_rate=0.000000000000000001):
                 tlsr.bias : tlsr.bias - learning_rate * g_bias
               }
     train_model = theano.function([], outputs=cost, updates=updates,
-                                  givens={x:x_train, y:y_train})
+            givens={x:x_train[:], y:y_train[:]})
 
     current_cost = train_model()
     print(current_cost)
@@ -224,6 +229,7 @@ def build_argument_parser():
     argument_parser.add_argument('--data-file-name', default=default_file_name)
     argument_parser.add_argument('--learning-rate', type=float,
             default=0.000000000000000001)
+    argument_parser.add_argument('--reg-lambda', type=float, default=0.1)
     return argument_parser
 
 def main(argv=None):
@@ -231,7 +237,8 @@ def main(argv=None):
         argv = sys.argv 
     argument_parser = build_argument_parser()
     args = argument_parser.parse_args(args=argv[1:])
-    eigface_sgd(args.data_file_name, learning_rate=args.learning_rate)
+    eigface_sgd(args.data_file_name, learning_rate=args.learning_rate,
+            reg_lambda=args.reg_lambda)
     
 if __name__ == '__main__':
     sys.exit(main())
