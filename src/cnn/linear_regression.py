@@ -182,7 +182,6 @@ def eigface_sgd(data_file_name, learning_rate=0.000000000000000001,
     tlsr = TheanoLeastSquaresRegression(x, n_features, n_training_examples,
                                         reg_lambda=reg_lambda)
     cost = tlsr.cost(y)
-    print(x_test)
     test_model = theano.function([], outputs=cost, givens={x:x_test[:],
         y:y_test[:]})
     
