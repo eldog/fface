@@ -7,6 +7,7 @@ from __future__ import print_function
 import cPickle
 import csv
 import datetime
+import logging
 import os
 import sys
 
@@ -70,15 +71,17 @@ class EigenFace(object):
         """
         # convert face data to correct type for theano to use gpu
         faces = numpy.asarray(faces, dtype=theano.config.floatX)
-        
         # calculate the mean face, Psi
+        logging.info('calculating mean face')
         self.mean_face = faces.mean(axis=1)
         # create the face space, i.e., the eigenvectors of the faces
         face_diffs = (faces.T - self.mean_face).T
         x = T.matrix()
         covar = T.dot(x.T, x)
         f_covar = theano.function([x], covar) 
+        logging.info('calculating covariance matrix')
         sigma = f_covar(face_diffs)
+        logging.info('performing singular value decomposition')
         u, s, v = numpy.linalg.svd(sigma)
         # take the first n_eigs eigenfaces for facespace
         self.face_space = numpy.dot(face_diffs, u)[:,:n_eigs]
@@ -98,8 +101,6 @@ class EigenFace(object):
 
 
 def plot_correlation(x_data, theta, bias, y_data):
-    print(x_data.shape)
-    print(theta.shape)
     x_guess = (numpy.dot(theta.T, x_data) + bias).T
     pyplot.plot(x_guess, y_data, 'ro')
     pyplot.axis([-4, 4, -4, 4])
@@ -108,7 +109,7 @@ def plot_correlation(x_data, theta, bias, y_data):
     y = y_data.tolist()
     y = map(float, y)
     pearsons = pearsonr(x[0],y) 
-    print('pearsons coefficient: %f' % pearsons[0])
+    logging.info('pearsons coefficient: %f' % pearsons[0])
     pyplot.title('Pearsons: %f' % pearsons[0])
     pyplot.show()
 
@@ -116,6 +117,7 @@ def load_images(hotornot_file_csv, theano_shared=True):
     """
     Assumes the images are in an immediate sub-directory if the csv file.
     """
+    logging.info('loading data')
     hotornot_dir = os.path.join(os.path.dirname(__file__),
             '../../../data/eccv2010_beauty_data/hotornot_face')
     train_data = [[], []]
@@ -163,6 +165,7 @@ def eigface_sgd(data_file_name, learning_rate=0.000000000000000001,
                 reg_lambda=0.1):
     train_data, test_data = load_images(data_file_name)
     eig_face = EigenFace(train_data[0])
+    logging.info('projecting data to face_space')
     train_data[0] = eig_face.project_to_face_space(train_data[0])
     test_data[0] = eig_face.project_to_face_space(test_data[0])
     n_features, n_training_examples = train_data[0].shape
@@ -195,15 +198,15 @@ def eigface_sgd(data_file_name, learning_rate=0.000000000000000001,
             givens={x:x_train[:], y:y_train[:]})
 
     current_cost = train_model()
-    print(current_cost)
+    logging.info('initial cost %f' % current_cost)
     old_cost = 0
     iterations = 0
+    logging.info('beginning stochastic gradient descent')
     while ((abs(current_cost- old_cost)) > 0.000001):
         old_cost = current_cost
         current_cost = train_model()
         if iterations % 1000 == 0:
-            print('iteration %d' % iterations)
-            print('cost %f' % current_cost)
+            logging.info('iteration % 9d cost % 9f' % (iterations, current_cost))
         iterations += 1
 
     error = test_model()
@@ -211,13 +214,13 @@ def eigface_sgd(data_file_name, learning_rate=0.000000000000000001,
     bias = tlsr.theta.get_value()
 
     # Print the results
-    print('training cost minimised:\t\t %f' % current_cost)
-    print('test error:\t\t\t %f' % error)
+    logging.info('training cost minimised: %f' % current_cost)
+    logging.info('test error: %f' % error)
 
     # Save our weights should we ever need them again
     d_time = datetime.datetime.utcnow().strftime('%H:%M:%S-%d-%m-%Y')
     theta_file_name = 'out-%s.pickle' % d_time
-    print('writing weights to %s' % theta_file_name)
+    logging.info('writing weights to %s' % theta_file_name)
     with open(theta_file_name, 'w') as out_file:
         cPickle.dump((theta, bias), out_file)
 
@@ -229,6 +232,7 @@ def build_argument_parser():
     argument_parser.add_argument('--learning-rate', type=float,
             default=0.000000000000000001)
     argument_parser.add_argument('--reg-lambda', type=float, default=0.1)
+    argument_parser.add_argument('--log-level', default='INFO')
     return argument_parser
 
 def main(argv=None):
@@ -236,6 +240,11 @@ def main(argv=None):
         argv = sys.argv 
     argument_parser = build_argument_parser()
     args = argument_parser.parse_args(args=argv[1:])
+    numeric_level = getattr(logging, args.log_level.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+    logging.basicConfig(format='%(levelname)s: %(asctime)s: %(message)s',
+                        level=numeric_level)
     eigface_sgd(args.data_file_name, learning_rate=args.learning_rate,
             reg_lambda=args.reg_lambda)
     
