@@ -31,6 +31,7 @@ class TheanoLeastSquaresRegression(object):
         self.y_pred = T.dot(self.theta.T, x_data) + self.bias
         self.m = m
         self.reg_lambda = reg_lambda
+        self.params = [self.theta, self.bias]
     
     def cost(self, y):
         """
@@ -38,6 +39,4 @@ class TheanoLeastSquaresRegression(object):
         """
         return (1 / (2 * self.m)) * T.sum(T.sqr(self.y_pred - y)) \
                 + self.reg_lambda * T.sum(T.sqr(self.theta))
-
-
 

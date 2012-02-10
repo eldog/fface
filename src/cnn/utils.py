@@ -3,16 +3,25 @@ from __future__ import division
 from __future__ import print_function
 
 import csv
+import datetime
 import logging
 import os
 import pickle
 
 import Image
+from matplotlib import pyplot
 import numpy
 import theano
 
+__all__ = ('DEFAULT_DATA_FILE_NAME', 'get_face_space', 'load_images',
+           'plot_correlation', 'save_pickle', 'get_pickle', 'to_theano_shared',
+           'append_timestamp_to_file_name')
+
 DEFAULT_DATA_FILE_NAME = os.path.join(os.path.dirname(__file__),
             '../../../data/eccv2010_beauty_data/eccv2010_split1.csv')
+
+image_dir = os.path.join(os.path.dirname(__file__),
+                         '../../../img/')
 
 def load_images(hotornot_csv_file_name):
     """
@@ -51,9 +60,28 @@ def load_images(hotornot_csv_file_name):
     test_data[0] = numpy.asarray(test_data[0], dtype=theano.config.floatX).T
     test_data[1] = numpy.asarray(test_data[1], dtype=theano.config.floatX).T
     logging.debug('train data shape: %s' % str(train_data[0].shape))
-    logging.debug('test data shape: %s' %  str(test_data[0].shape))
+    logging.debug('test data shape: %s' % str(test_data[0].shape))
 
     return train_data, test_data 
+
+def append_timestamp_to_file_name(file_name):
+    d_time = datetime.datetime.utcnow().strftime('%H:%M:%S-%d-%m-%Y')
+    return ('%s-%s' % (file_name, d_time))
+
+def plot_correlation(human_scores, machine_scores, title, file_name, style='ro', 
+                     show=False):
+    pyplot.plot(human_scores, machine_scores, style)
+    pyplot.axis([-4, 4, -4, 4])
+    pyplot.xlabel('human score')
+    pyplot.ylabel('machine score')
+    pyplot.title(title, fontsize='small')
+    if show:
+        pyplot.show()
+    file_name = append_timestamp_to_file_name(file_name)
+    figure_file_name = os.path.join(image_dir, '%s.png' % file_name)
+    logging.info('writing scatterplot of results to %s' % figure_file_name)
+    with open(figure_file_name, 'w') as figure_file:
+        pyplot.savefig(figure_file, format='png')
 
 def to_theano_shared(data):
     data[0] = theano.shared(numpy.asarray(data[0], dtype=theano.config.floatX))

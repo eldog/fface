@@ -7,24 +7,13 @@ import argparse
 import logging
 import sys
 from math import exp
+import os
 
-from matplotlib import pyplot
 import numpy
 from scipy.stats import pearsonr
 
 from eigenface import EigenFace
-from utils import DEFAULT_DATA_FILE_NAME, get_face_space, load_images 
-
-def plot_correlation(real_scores, predictions):
-    pyplot.plot(real_scores, predictions, 'ro')
-    pyplot.axis([-4, 4, -4, 4])
-    pyplot.xlabel('human scores')
-    pyplot.ylabel('machine scores')
-    pearsons = pearsonr(real_scores, predictions)
-    logging.info('pearsons correlation: %f, %f' % pearsons)
-    pyplot.title('Scatter of scores with pearsons correlation %f'% pearsons[0], 
-                 fontsize='small')
-    pyplot.show() 
+from utils import * 
 
 def knn_regression(data_file_name, k_value=3, n_eigs=100, weighted=True, 
                    beta=1000000):
@@ -42,7 +31,8 @@ def knn_regression(data_file_name, k_value=3, n_eigs=100, weighted=True,
     train_data = zip(train_data[0].T, train_data[1])
     test_data = zip(test_data[0].T, test_data[1])
     for iterations, (test_example, test_score) in enumerate(test_data):
-        logging.info('on example %d of %d' % (iterations, n_test_examples))
+        if iterations % 100 == 0:
+            logging.info('on example %d of %d' % (iterations, n_test_examples))
         distances = []
         for train_example, train_score in train_data:
             distance = (numpy.sqrt(
@@ -53,24 +43,20 @@ def knn_regression(data_file_name, k_value=3, n_eigs=100, weighted=True,
         distances.sort()
         k_nearest_neighbours = distances[:k_value]
         if weighted:
-            sum_weighted_distances = sum(score * exp(-distance / beta) \
-                                     for distance, score in \
+            sum_weighted_distances = sum(score * exp(-distance / beta) 
+                                     for distance, score in 
                                      k_nearest_neighbours)
-            normalisation = sum(exp(-distance / beta) for distance, score in \
+            normalisation = sum(exp(-distance / beta) for distance, score in 
                                 k_nearest_neighbours)
-            print(sum_weighted_distances)
-            print(normalisation)
-            
             prediction = (1 / normalisation) * sum_weighted_distances
         else:
             prediction = sum(score for distance, score in k_nearest_neighbours)\
                          / k_value
         predictions.append(prediction)
         error = abs(test_score - prediction)
-        logging.info('error is %f' % error)
         errors.append(error)
     logging.info('mean error is %f' % (sum(errors) / len(errors)))
-    plot_correlation(real_scores, predictions)
+    return real_scores, predictions
 
 def build_argument_parser():
     argument_parser = argparse.ArgumentParser()
@@ -79,6 +65,8 @@ def build_argument_parser():
     argument_parser.add_argument('--k-value', type=int, default=3)
     argument_parser.add_argument('--beta', type=float, default=1000000)
     argument_parser.add_argument('--n-eigs', type=int, default=100)
+    argument_parser.add_argument('--show-plot', action='store_true')
+    argument_parser.add_argument('--not-weighted', action='store_false')
     argument_parser.add_argument('--log-level', default='INFO')
     return argument_parser
 
@@ -93,8 +81,20 @@ def main(argv=None):
     logging.basicConfig(format='%(levelname)s: %(asctime)s: %(message)s',
                         level=numeric_level)
     for data_file in args.data_file_name:
-        knn_regression(data_file, k_value=args.k_value, n_eigs=args.n_eigs,
-                       beta=args.beta)
+        real_scores, predictions = knn_regression(data_file, 
+                                        k_value=args.k_value, 
+                                        n_eigs=args.n_eigs,
+                                        beta=args.beta,
+                                        weighted=args.not_weighted)
+        pearsons = pearsonr(real_scores, predictions)
+        logging.info('pearsons correlation: %f, %f' % pearsons)
+        title = 'KNN on data set %s with k=%d beta=%d ' \
+                'neigfaces=%d pearsons:%f' % (os.path.basename(data_file), 
+                                              args.k_value, args.beta, 
+                                              args.n_eigs, pearsons[0])
+        file_name = 'KNN-k%d-b%d-e%d' % (args.k_value, args.beta, args.n_eigs)
+        plot_correlation(real_scores, predictions, title, file_name, style='bo',
+                         show=args.show_plot)
 
 if __name__ == '__main__':
     exit(main())

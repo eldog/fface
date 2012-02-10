@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import print_function
 
 import cPickle
-import datetime
 import logging
 import os
 import sys
@@ -13,8 +12,6 @@ import sys
 from argparse import ArgumentParser
 
 import Image
-from matplotlib import cm, pyplot
-from mpl_toolkits.mplot3d import Axes3D
 import numpy
 from scipy.stats import pearsonr
 import theano
@@ -22,44 +19,24 @@ from theano import tensor as T
 
 from eigenface import EigenFace
 from least_squares_regression import TheanoLeastSquaresRegression
-from utils import DEFAULT_DATA_FILE_NAME, load_images, to_theano_shared
+from utils import *
 
-image_dir = os.path.join(os.path.dirname(__file__),
-                         '../../../img/')
-
-def append_timestamp_to_file_name(file_name):
-    d_time = datetime.datetime.utcnow().strftime('%H:%M:%S-%d-%m-%Y')
-    return ('%s-%s' % (file_name, d_time))
-
-def plot_correlation(x_data, theta, bias, y_data, data_file_name,
+def plot(x_data, theta, bias, y_data, data_file_name,
                      display=False):
     data_file_name = os.path.basename(data_file_name)
     x_guess = (numpy.dot(theta.T, x_data) + bias).T
-    pyplot.plot(y_data, x_guess,'ro')
-    pyplot.axis([-4, 4, -4, 4])
-    pyplot.xlabel('human score')
-    pyplot.ylabel('machine score')
     x = x_guess.T.tolist()
     y = y_data.tolist()
     y = map(float, y)
     pearsons = pearsonr(x[0],y) 
-    logging.info('pearsons coefficient: %f' % pearsons[0])
-    pyplot.title("Scatter of scores on data set %s with pearsons correlation %f"
-                 % (data_file_name, pearsons[0]), fontsize='small')
-    if display:
-        pyplot.show()
-    figure_file_name = os.path.join(image_dir, 
-                                    '%s.png' % 
-                                    append_timestamp_to_file_name('figure-%s' %
-                                                              data_file_name))
-    logging.info('writing scatterplot of results to %s' % figure_file_name)
-    with open(figure_file_name, 'w') as figure_file:
-        pyplot.savefig(figure_file, format='png')
+    logging.info('pearsons coefficient: %f, %f' % pearsons)
+    title = 'Linear regression on data set %s with pearsons correlation %f' \
+                 % (data_file_name, pearsons[0])
+    plot_correlation(x_guess, y_data, title, data_file_name) 
 
 def prepend_ones(data):
     return numpy.concatenate((numpy.ones((1, (data.shape[1])), 
                                 dtype=theano.config.floatX), data))
-
 
 def eigface_sgd(data_file_name, n_eigs=100, learning_rate=0.000000000000000001, 
                 reg_lambda=0.1, display=False):
@@ -72,6 +49,7 @@ def eigface_sgd(data_file_name, n_eigs=100, learning_rate=0.000000000000000001,
     n_test_examples = test_data[0].shape[1]
     train_data[0] = prepend_ones(train_data[0])
     test_data[0] = prepend_ones(test_data[0])
+
     train_data = to_theano_shared(train_data)
     test_data = to_theano_shared(test_data)
 
@@ -119,10 +97,8 @@ def eigface_sgd(data_file_name, n_eigs=100, learning_rate=0.000000000000000001,
     # Save our weights should we ever need them again
     theta_file_name = '%s.pickle' % append_timestamp_to_file_name('weights')
     logging.info('writing weights to %s' % theta_file_name)
-    with open(theta_file_name, 'w') as out_file:
-        cPickle.dump((theta, bias), out_file)
-
-    plot_correlation(x_test.get_value(), theta, bias, y_test.get_value(),
+    save_pickle((theta, bias), theta_file_name)
+    plot(x_test.get_value(), theta, bias, y_test.get_value(),
                      data_file_name, display=display)
 
 def build_argument_parser():
