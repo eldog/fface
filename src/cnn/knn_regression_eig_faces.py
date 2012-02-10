@@ -6,13 +6,14 @@ from __future__ import print_function
 import argparse
 import logging
 import sys
+from math import exp
 
 from matplotlib import pyplot
 import numpy
 from scipy.stats import pearsonr
 
 from eigenface import EigenFace
-from utils import DEFAULT_DATA_FILE_NAME, load_images
+from utils import DEFAULT_DATA_FILE_NAME, get_face_space, load_images 
 
 def plot_correlation(real_scores, predictions):
     pyplot.plot(real_scores, predictions, 'ro')
@@ -25,11 +26,14 @@ def plot_correlation(real_scores, predictions):
                  fontsize='small')
     pyplot.show() 
 
-def knn_regression(data_file_name, k_value=3, n_eigs=100):
+def knn_regression(data_file_name, k_value=3, n_eigs=100, weighted=True, 
+                   beta=1000000):
     train_data, test_data = load_images(data_file_name)
-    eig_face = EigenFace(train_data[0], n_eigs=n_eigs)
-    train_data[0] = eig_face.project_to_face_space(train_data[0])
-    test_data[0] = eig_face.project_to_face_space(test_data[0])
+    eig_face = EigenFace.from_file(train_data[0], data_file_name, n_eigs)
+    train_data[0] = get_face_space(data_file_name, 'train_x', train_data[0],
+                                   eig_face)
+    test_data[0] = get_face_space(data_file_name, 'test_x', test_data[0],
+                                  eig_face)
     logging.info("Beginning knn regression")
     predictions = []
     errors = []
@@ -48,8 +52,19 @@ def knn_regression(data_file_name, k_value=3, n_eigs=100):
             distances.append((distance, train_score))
         distances.sort()
         k_nearest_neighbours = distances[:k_value]
-        prediction = sum(score for distance, score in k_nearest_neighbours)\
-                     / k_value
+        if weighted:
+            sum_weighted_distances = sum(score * exp(-distance / beta) \
+                                     for distance, score in \
+                                     k_nearest_neighbours)
+            normalisation = sum(exp(-distance / beta) for distance, score in \
+                                k_nearest_neighbours)
+            print(sum_weighted_distances)
+            print(normalisation)
+            
+            prediction = (1 / normalisation) * sum_weighted_distances
+        else:
+            prediction = sum(score for distance, score in k_nearest_neighbours)\
+                         / k_value
         predictions.append(prediction)
         error = abs(test_score - prediction)
         logging.info('error is %f' % error)
@@ -62,6 +77,7 @@ def build_argument_parser():
     argument_parser.add_argument('--data-file-name', nargs='+',
                                  default=[DEFAULT_DATA_FILE_NAME])
     argument_parser.add_argument('--k-value', type=int, default=3)
+    argument_parser.add_argument('--beta', type=float, default=1000000)
     argument_parser.add_argument('--n-eigs', type=int, default=100)
     argument_parser.add_argument('--log-level', default='INFO')
     return argument_parser
@@ -77,7 +93,8 @@ def main(argv=None):
     logging.basicConfig(format='%(levelname)s: %(asctime)s: %(message)s',
                         level=numeric_level)
     for data_file in args.data_file_name:
-        knn_regression(data_file, k_value=args.k_value, n_eigs=args.n_eigs)
+        knn_regression(data_file, k_value=args.k_value, n_eigs=args.n_eigs,
+                       beta=args.beta)
 
 if __name__ == '__main__':
     exit(main())
