@@ -10,6 +10,9 @@ import Image
 import numpy
 import theano
 
+DEFAULT_DATA_FILE_NAME = os.path.join(os.path.dirname(__file__),
+            '../../../data/eccv2010_beauty_data/eccv2010_split1.csv')
+
 def load_images(hotornot_file_csv):
     """
     Assumes the images are in an immediate sub-directory if the csv file.

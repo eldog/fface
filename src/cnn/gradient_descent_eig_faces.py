@@ -22,7 +22,7 @@ from theano import tensor as T
 
 from eigenface import EigenFace
 from least_squares_regression import TheanoLeastSquaresRegression
-from utils import load_images, to_theano_shared
+from utils import DEFAULT_DATA_FILE_NAME, load_images, to_theano_shared
 
 image_dir = os.path.join(os.path.dirname(__file__),
                          '../../../img/')
@@ -56,9 +56,6 @@ def plot_correlation(x_data, theta, bias, y_data, data_file_name,
     with open(figure_file_name, 'w') as figure_file:
         pyplot.savefig(figure_file, format='png')
 
-default_file_name = os.path.join(os.path.dirname(__file__),
-            '../../../data/eccv2010_beauty_data/eccv2010_split1.csv')
-
 def prepend_ones(data):
     return numpy.concatenate((numpy.ones((1, (data.shape[1])), 
                                 dtype=theano.config.floatX), data))
@@ -68,7 +65,6 @@ def eigface_sgd(data_file_name, n_eigs=100, learning_rate=0.000000000000000001,
                 reg_lambda=0.1, display=False):
     train_data, test_data = load_images(data_file_name)
     eig_face = EigenFace(train_data[0], n_eigs=n_eigs)
-    logging.info('projecting data to face_space')
     train_data[0] = eig_face.project_to_face_space(train_data[0])
     test_data[0] = eig_face.project_to_face_space(test_data[0])
     n_features, n_training_examples = train_data[0].shape
@@ -132,7 +128,7 @@ def eigface_sgd(data_file_name, n_eigs=100, learning_rate=0.000000000000000001,
 def build_argument_parser():
     argument_parser = ArgumentParser()
     argument_parser.add_argument('--data-file-name', nargs='+', 
-                                  default=[default_file_name])
+                                  default=[DEFAULT_DATA_FILE_NAME])
     argument_parser.add_argument('--n-eigs', type=int, default=100)
     argument_parser.add_argument('--learning-rate', type=float,
                                  default=0.000000000000000001)
