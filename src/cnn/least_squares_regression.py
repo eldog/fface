@@ -25,7 +25,7 @@ class TheanoLeastSquaresRegression(object):
         self.theta = theano.shared(numpy.zeros((n_features, 1),
                 dtype=theano.config.floatX),
                 name='theta')
-        self.bias = theano.shared(0.0,
+        self.bias = theano.shared(numpy.cast['float32'](0),
                     name='bias')
                         
         self.y_pred = T.dot(self.theta.T, x_data) + self.bias
