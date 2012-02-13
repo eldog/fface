@@ -41,14 +41,19 @@ def prepend_ones(data):
 def eigface_sgd(data_file_name, n_eigs=100, learning_rate=0.000000000000000001, 
                 reg_lambda=0.1, display=False):
     train_data, test_data = load_images(data_file_name)
-    eig_face = EigenFace(train_data[0], n_eigs=n_eigs)
+    eig_face = EigenFace.from_file(train_data[0], data_file_name, n_eigs)
     train_data[0] = eig_face.project_to_face_space(train_data[0])
     test_data[0] = eig_face.project_to_face_space(test_data[0])
+    train_data[0] = get_face_space(data_file_name, 'train_x', train_data[0],
+                                   eig_face)
+    test_data[0] = get_face_space(data_file_name, 'test_x', test_data[0],
+                                  eig_face)
+
     n_features, n_training_examples = train_data[0].shape
-    n_features += 1 # we're going to add the ones on
+    #n_features += 1 # we're going to add the ones on
     n_test_examples = test_data[0].shape[1]
-    train_data[0] = prepend_ones(train_data[0])
-    test_data[0] = prepend_ones(test_data[0])
+    #train_data[0] = prepend_ones(train_data[0])
+    #test_data[0] = prepend_ones(test_data[0])
 
     train_data = to_theano_shared(train_data)
     test_data = to_theano_shared(test_data)
@@ -110,7 +115,7 @@ def build_argument_parser():
                                  default=0.000000000000000001)
     argument_parser.add_argument('--reg-lambda', type=float, default=0.1)
     argument_parser.add_argument('--log-level', default='INFO')
-    argument_parser.add_argument('--display')
+    argument_parser.add_argument('--display', action='store_true')
     return argument_parser
 
 def main(argv=None):

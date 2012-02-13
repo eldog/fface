@@ -26,29 +26,33 @@ class HiddenLayer(object):
                 dtype=theano.config.floatX)), name='W')
         self.b = theano.shared(value=numpy.zeros((n_out,),
             dtype=theano.config.floatX), name='b')
-        self.output = activation(T.dot(self.W.T, x_data).T + self.b).T
+        self.output = activation(T.dot(x_data, self.W) + self.b)
         self.params = [self.W, self.b]
 
 class MLP(object):
     def __init__(self, rng, x_data, n_in, n_neurons_per_layer, m):
-        self.hidden_layer1 = HiddenLayer(rng, x_data, n_in, n_neurons_per_layer)
+        self.hidden_layer1 = HiddenLayer(rng, x_data.T, n_in, n_neurons_per_layer)
         self.hidden_layer2 = HiddenLayer(rng, self.hidden_layer1.output,
                 n_neurons_per_layer, n_neurons_per_layer)
+        self.hidden_layer3 = HiddenLayer(rng, self.hidden_layer2.output, n_neurons_per_layer,
+                n_neurons_per_layer)
         self.linear_regression = TheanoLeastSquaresRegression(
-                                    self.hidden_layer2.output, n_neurons_per_layer, m)
+                                    self.hidden_layer3.output.T,
+                                    n_neurons_per_layer, n_neurons_per_layer)
         self.cost = self.linear_regression.cost
-        self.params = self.hidden_layer2.params + self.hidden_layer1.params \
+        self.params = self.hidden_layer3.params + self.hidden_layer2.params + self.hidden_layer1.params \
                       + self.linear_regression.params
         self.output = self.linear_regression.y_pred
         self.L2_sqr = (self.hidden_layer1.W ** 2).sum() \
                        + (self.hidden_layer2.W ** 2).sum() \
+                       + (self.hidden_layer3.W ** 2).sum() \
                        + (self.linear_regression.theta ** 2).sum()
 def prepend_ones(data):
     return numpy.concatenate((numpy.ones((1, (data.shape[1])), 
                                 dtype=theano.config.floatX), data))
 
 def train_nn(data_file_name, reg_lambda=0.01, learning_rate=0.01, n_eigs=100, 
-        n_neurons_per_layer=20, display=True):
+        n_neurons_per_layer=100, batch_size=100, display=True):
     train_data, test_data = load_images(data_file_name)
     eig_face = EigenFace.from_file(train_data[0], data_file_name, n_eigs)
     train_data[0] = get_face_space(data_file_name, 'train_x', train_data[0],
@@ -56,10 +60,7 @@ def train_nn(data_file_name, reg_lambda=0.01, learning_rate=0.01, n_eigs=100,
     test_data[0] = get_face_space(data_file_name, 'test_x', test_data[0],
                                   eig_face)
     n_features, n_training_examples = train_data[0].shape
-    #n_features += 1
     real_scores = test_data[1].T.tolist()
-    #train_data[0] = prepend_ones(train_data[0])
-    #test_data[0] = prepend_ones(test_data[0])
 
     train_data = to_theano_shared(train_data)
     test_data = to_theano_shared(test_data)
@@ -70,7 +71,6 @@ def train_nn(data_file_name, reg_lambda=0.01, learning_rate=0.01, n_eigs=100,
 
     mlp = MLP(rng, x, n_features, n_neurons_per_layer, n_training_examples)
     cost = mlp.cost(y) + reg_lambda * mlp.L2_sqr
-
 
     test_model =theano.function([],
             outputs=[cost, mlp.output],
@@ -123,7 +123,7 @@ def build_argument_parser():
     argument_parser = ArgumentParser()
     argument_parser.add_argument('--data-file-name', nargs='+', 
                                   default=[DEFAULT_DATA_FILE_NAME])
-    argument_parser.add_argument('--n-neurons-per-layer', default=100, type=int)
+    argument_parser.add_argument('--n-neurons-per-layer', default=20, type=int)
     argument_parser.add_argument('--n-eigs', type=int, default=100)
     argument_parser.add_argument('--learning-rate', type=float,
                                  default=0.000000000000000001)

@@ -55,10 +55,10 @@ def load_images(hotornot_csv_file_name):
             else:
                 raise ValueError('only test or train allowed in input')
     
-    train_data[0] = numpy.asarray(train_data[0], dtype=theano.config.floatX).T
-    train_data[1] = numpy.asarray(train_data[1], dtype=theano.config.floatX).T
-    test_data[0] = numpy.asarray(test_data[0], dtype=theano.config.floatX).T
-    test_data[1] = numpy.asarray(test_data[1], dtype=theano.config.floatX).T
+    train_data[0] = numpy.asarray(train_data[0], dtype=theano.config.floatX)
+    train_data[1] = numpy.asarray(train_data[1], dtype=theano.config.floatX)
+    test_data[0] = numpy.asarray(test_data[0], dtype=theano.config.floatX)
+    test_data[1] = numpy.asarray(test_data[1], dtype=theano.config.floatX)
     logging.debug('train data shape: %s' % str(train_data[0].shape))
     logging.debug('test data shape: %s' % str(test_data[0].shape))
 
@@ -80,7 +80,7 @@ def plot_correlation(human_scores, machine_scores, title, file_name, style='ro',
     file_name = append_timestamp_to_file_name(file_name)
     figure_file_name = os.path.join(image_dir, '%s.png' % file_name)
     logging.info('writing scatterplot of results to %s' % figure_file_name)
-    with open(figure_file_name, 'w') as figure_file:
+    with open(figure_file_name, 'wb') as figure_file:
         pyplot.savefig(figure_file, format='png')
 
 def to_theano_shared(data):
