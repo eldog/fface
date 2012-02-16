@@ -15,7 +15,8 @@ import theano
 
 __all__ = ('DEFAULT_DATA_FILE_NAME', 'get_face_space', 'load_images',
            'plot_correlation', 'save_pickle', 'get_pickle', 'to_theano_shared',
-           'append_timestamp_to_file_name')
+           'append_timestamp_to_file_name', 'trim_to_batch_size', 'plot_cost',
+           'normalize_zero_mean', 'get_means_and_ranges')
 
 DEFAULT_DATA_FILE_NAME = os.path.join(os.path.dirname(__file__),
             '../../../data/eccv2010_beauty_data/eccv2010_split1.csv')
@@ -36,6 +37,7 @@ def load_images(hotornot_csv_file_name):
     hotornot_dir = os.path.join(os.path.dirname(__file__),
             '../../../data/eccv2010_beauty_data/hotornot_face')
     train_data = [[], []]
+    validation_data = [[], []]
     test_data = [[], []]
     with open(hotornot_csv_file_name) as hotornot_csv:
         reader = csv.reader(hotornot_csv)
@@ -50,19 +52,59 @@ def load_images(hotornot_csv_file_name):
         for row in reader:
             if row[2] == 'train':
                 append_row_to_data(train_data, row)
+            elif row[2] == 'validation':
+                append_row_to_data(validation_data, row)
             elif row[2] == 'test':
                 append_row_to_data(test_data, row)
             else:
                 raise ValueError('only test or train allowed in input')
-    
+   
+    validation_data[0] = numpy.asarray(validation_data[0], dtype=theano.config.floatX)
+    validation_data[1] = numpy.asarray(validation_data[1], dtype=theano.config.floatX)
     train_data[0] = numpy.asarray(train_data[0], dtype=theano.config.floatX)
     train_data[1] = numpy.asarray(train_data[1], dtype=theano.config.floatX)
     test_data[0] = numpy.asarray(test_data[0], dtype=theano.config.floatX)
     test_data[1] = numpy.asarray(test_data[1], dtype=theano.config.floatX)
     logging.debug('train data shape: %s' % str(train_data[0].shape))
+    logging.debug('validation data shape is: %s' % str(validation_data[0].shape))
     logging.debug('test data shape: %s' % str(test_data[0].shape))
 
-    return train_data, test_data 
+    return train_data, validation_data, test_data 
+
+def get_means_and_ranges(data):
+    means = data.mean(axis=1)
+    ranges = data.max(axis=1) - data.min(axis=1)
+    return means, ranges
+
+def normalize_zero_mean(data, means, ranges):
+    return (numpy.subtract(data.T, means) / ranges).T
+
+def trim_to_batch_size(data, batch_size):
+    """
+    Trims the data if need be to make sure it is indexable by the batch size
+    
+    :type two element list
+    :param data: (x_data, y_data)
+
+    :type int
+    :param batch_size: the value the number examples in thedata's will be a 
+                       multiple of
+    """
+    n_examples, n_features = data[0].shape
+    n_targets = data[1].shape[0]
+    logging.debug('Have %d examples and %d targets' % (n_examples, n_targets))
+    assert n_examples == n_targets
+    remainder = n_examples % batch_size
+    if remainder == 0:
+        logging.info('Using %d examples in batches of %d'
+                     % (n_examples, batch_size))
+        return data
+    logging.info('number of examples exceeds batch size by %d' % remainder)
+    n_to_keep = n_examples - remainder
+    data[0] = data[0][:n_to_keep]
+    data[1] = data[1][:n_to_keep]
+    logging.info('trimmed to %d examples' % n_to_keep)
+    return data
 
 def append_timestamp_to_file_name(file_name):
     d_time = datetime.datetime.utcnow().strftime('%H:%M:%S-%d-%m-%Y')
@@ -70,23 +112,41 @@ def append_timestamp_to_file_name(file_name):
 
 def plot_correlation(human_scores, machine_scores, title, file_name, style='ro', 
                      show=False):
+    pyplot.clf()
     pyplot.plot(human_scores, machine_scores, style)
     pyplot.axis([-4, 4, -4, 4])
     pyplot.xlabel('human score')
     pyplot.ylabel('machine score')
     pyplot.title(title, fontsize='small')
+    save_plot(file_name)
     if show:
         pyplot.show()
+
+def save_plot(file_name):
     file_name = append_timestamp_to_file_name(file_name)
     figure_file_name = os.path.join(image_dir, '%s.png' % file_name)
-    logging.info('writing scatterplot of results to %s' % figure_file_name)
+    logging.info('writing plot of results to %s' % figure_file_name)
     with open(figure_file_name, 'wb') as figure_file:
         pyplot.savefig(figure_file, format='png')
 
+
 def to_theano_shared(data):
-    data[0] = theano.shared(numpy.asarray(data[0], dtype=theano.config.floatX))
-    data[1] = theano.shared(numpy.asarray(data[1], dtype=theano.config.floatX))
+    data[0] = theano.shared(numpy.asarray(data[0], dtype=theano.config.floatX),
+            borrow=True)
+    data[1] = theano.shared(numpy.asarray(data[1], dtype=theano.config.floatX),
+            borrow=True)
     return data
+
+def plot_cost(cost, validation, test, pearsons, title, file_name='cost', show=True):
+    pyplot.clf()
+    pyplot.plot(cost[0], cost[1], 'b', validation[0], validation[1], 'g', test[0],
+            test[1],'c', pearsons[0], pearsons[1], 'm')
+    pyplot.ylabel('values')
+    pyplot.xlabel('iteration')
+    pyplot.title(title, fontsize='small')
+    save_plot(file_name)
+    if show:
+        pyplot.show()
 
 pickle_dir = os.path.join(os.path.dirname(__file__), '../../../data/pickles')
 
@@ -115,6 +175,7 @@ def save_pickle(obj, file_name):
     :param file_name: the name of the pickle file to be written to
     """
     pickle_file_name = _create_pickle_file_name(os.path.basename(file_name))
+    logging.info('saving to %s' % pickle_file_name)
     with open(pickle_file_name, 'wb') as pickle_file:
         pickle.dump(obj, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
 
