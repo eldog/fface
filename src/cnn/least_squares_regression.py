@@ -41,8 +41,7 @@ class TheanoLeastSquaresRegression(object):
         """
         Returns the cost of the current prediction function.
         """
-        return (1 / (2 * self.m)) * T.sum(T.sqr(self.y_pred - y)) \
-                + self.reg_lambda * T.sum(T.sqr(self.theta))
+        return T.sum(T.sqr(self.y_pred - y))
 
     def error(self, y):
         return (numpy.divide(numpy.subtract(y, self.y_pred), y))

@@ -23,7 +23,8 @@ DEFAULT_DATA_FILE_NAME = os.path.join(os.path.dirname(__file__),
 
 image_dir = os.path.join(os.path.dirname(__file__),
                          '../../../img/')
-
+hotornot_dir = os.path.join(os.path.dirname(__file__),
+            '../../../data/eccv2010_beauty_data/hotornot_face')
 def load_images(hotornot_csv_file_name):
     """
     Loads the data from csv file and assumes the images are in an immediate 
@@ -34,20 +35,21 @@ def load_images(hotornot_csv_file_name):
                                    be loaded
     """
     logging.info('loading data from %s' % hotornot_csv_file_name)
-    hotornot_dir = os.path.join(os.path.dirname(__file__),
-            '../../../data/eccv2010_beauty_data/hotornot_face')
     train_data = [[], []]
     validation_data = [[], []]
     test_data = [[], []]
+    test_data_file_names = []
     with open(hotornot_csv_file_name) as hotornot_csv:
         reader = csv.reader(hotornot_csv)
         def append_row_to_data(data, row):
             def get_array_from_image(image_name):
                 image = Image.open(os.path.join(hotornot_dir, image_name))
-                luma = image.convert('L')
-                return numpy.asarray(luma).ravel()
+                return numpy.asarray([numpy.asarray(i).ravel() for i in
+                        image.convert('YCbCr').split()])
             # append the x_data
-            data[0].append(get_array_from_image(row[0]))
+
+            y_cb_cr = get_array_from_image(row[0])
+            data[0].append(y_cb_cr)
             data[1].append(row[1])
         for row in reader:
             if row[2] == 'train':
@@ -56,6 +58,7 @@ def load_images(hotornot_csv_file_name):
                 append_row_to_data(validation_data, row)
             elif row[2] == 'test':
                 append_row_to_data(test_data, row)
+                test_data_file_names.append(row[0])
             else:
                 raise ValueError('only test or train allowed in input')
    
@@ -69,15 +72,15 @@ def load_images(hotornot_csv_file_name):
     logging.debug('validation data shape is: %s' % str(validation_data[0].shape))
     logging.debug('test data shape: %s' % str(test_data[0].shape))
 
-    return train_data, validation_data, test_data 
+    return train_data, validation_data, test_data, test_data_file_names
 
 def get_means_and_ranges(data):
-    means = data.mean(axis=1)
-    ranges = data.max(axis=1) - data.min(axis=1)
+    means = data.mean()
+    ranges = data.max() - data.min()
     return means, ranges
 
 def normalize_zero_mean(data, means, ranges):
-    return (numpy.subtract(data.T, means) / ranges).T
+    return (numpy.divide(numpy.subtract(data, means), ranges))
 
 def trim_to_batch_size(data, batch_size):
     """
@@ -90,7 +93,7 @@ def trim_to_batch_size(data, batch_size):
     :param batch_size: the value the number examples in thedata's will be a 
                        multiple of
     """
-    n_examples, n_features = data[0].shape
+    n_examples, n_channels, n_features = data[0].shape
     n_targets = data[1].shape[0]
     logging.debug('Have %d examples and %d targets' % (n_examples, n_targets))
     assert n_examples == n_targets
@@ -110,14 +113,21 @@ def append_timestamp_to_file_name(file_name):
     d_time = datetime.datetime.utcnow().strftime('%H:%M:%S-%d-%m-%Y')
     return ('%s-%s' % (file_name, d_time))
 
-def plot_correlation(human_scores, machine_scores, title, file_name, style='ro', 
+def plot_correlation(human_scores, machine_scores, images, title, file_name, style='ro', 
                      show=False):
     pyplot.clf()
-    pyplot.plot(human_scores, machine_scores, style)
+    #pyplot.plot(human_scores, machine_scores, style)
+    import Image
     pyplot.axis([-4, 4, -4, 4])
     pyplot.xlabel('human score')
     pyplot.ylabel('machine score')
     pyplot.title(title, fontsize='small')
+    pyplot.axes().set_aspect('equal', adjustable='box')
+    for i, image in enumerate(images):
+        print(image)
+        pyplot.imshow(Image.open(os.path.join(hotornot_dir, image)),
+            extent=(human_scores[i] + 0.2, human_scores[i] - 0.2,
+                machine_scores[i] + 0.2, machine_scores[i] - 0.2))
     save_plot(file_name)
     if show:
         pyplot.show()
@@ -139,11 +149,20 @@ def to_theano_shared(data):
 
 def plot_cost(cost, validation, test, pearsons, title, file_name='cost', show=True):
     pyplot.clf()
-    pyplot.plot(cost[0], cost[1], 'b', validation[0], validation[1], 'g', test[0],
-            test[1],'c', pearsons[0], pearsons[1], 'm')
-    pyplot.ylabel('values')
-    pyplot.xlabel('iteration')
-    pyplot.title(title, fontsize='small')
+    pyplot.autoscale(tight=True)
+    pyplot.subplot(2, 1, 1)
+    pyplot.plot(cost[0], cost[1], 'b', label='Training')
+    pyplot.plot(validation[0], validation[1], 'g', label='Validation')
+    pyplot.plot(test[0], test[1], 'c', label='Test')
+    pyplot.title('Cost over iterations')
+    pyplot.xlabel('Iterations')
+    pyplot.ylabel('Cost')
+    pyplot.ylim((0,50))
+    pyplot.subplot(2, 1, 2)
+    pyplot.plot(pearsons[0], pearsons[1], 'm')
+    pyplot.xlabel('Iterations')
+    pyplot.ylabel('Pearson product-moment correlation coefficient')
+    pyplot.title('Pearson product-moment correlation coefficient over iterations')
     save_plot(file_name)
     if show:
         pyplot.show()
