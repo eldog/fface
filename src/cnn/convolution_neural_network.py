@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 
 from argparse import ArgumentParser
+from xml.dom.minidom import Document
 import gc
 import logging
 import sys
@@ -56,9 +57,17 @@ class ConvPoolLayer(object):
         """
         # Check number of feature maps is equal in both
         assert image_shape[1]==filter_shape[1]
+        self.image_shape = image_shape
+        self.filter_shape = filter_shape
+        self.feature_map_size = self._get_feature_map_size(image_shape[2],
+                                                      image_shape[3],
+                                                      filter_shape[2],
+                                                      filter_shape[3])
         self.W = theano.shared(numpy.zeros(filter_shape,
                                            dtype=theano.config.floatX))
         self.b = theano.shared(numpy.zeros((filter_shape[0],),
+                                           dtype=theano.config.floatX))
+        self.b_c = theano.shared(numpy.zeros((filter_shape[0],),
                                            dtype=theano.config.floatX))
         fil_in = numpy.prod(filter_shape[1:])
         fil_out = filter_shape[0] * numpy.prod(filter_shape[2:]) \
@@ -72,12 +81,44 @@ class ConvPoolLayer(object):
         conv_out = T.nnet.conv.conv2d(x_data, 
                                      self.W,
                                      filter_shape=filter_shape,
-                                     image_shape=image_shape)
-        pooled_out = T.signal.downsample.max_pool_2d(conv_out, 
+                                     image_shape=image_shape) \
+                   + self.b_c.dimshuffle('x', 0, 'x', 'x')
+        sigmoid_conv_out = T.tanh(conv_out + self.b.dimshuffle('x', 0, 'x',
+                                  'x'))
+        pooled_out = T.signal.downsample.max_pool_2d(sigmoid_conv_out, 
                                                      ds=pool_size,
                                                      ignore_border=True)
-        self.output = T.tanh(pooled_out + self.b.dimshuffle('x', 0, 'x', 'x'))
-        self.params = [self.W, self.b]
+        self.output = T.tanh(pooled_out)
+        self.params = [self.W, self.b, self.b_c]
+
+    def to_xml(self, document, parent):
+        plane = document.createElement('plane')
+        plane.setAttribute('id', 'conv1')
+        plane.setAttribute('type', 'convolution')
+        plane.setAttribute('featuremapsize', '%sx%s' 
+                          % self.feature_map_size)
+        plane.setAttribute('neuronsize', '%s%s'
+                          % (self.filter_shape[2], self.filter_shape[3]))
+        parent.appendChild(plane)
+        
+        bias = document.createElement('bias')
+        plane.appendChild(bias)
+        bias_text = document.createTextNode(str(self.b_c.get_value()))
+        bias.appendChild(bias_text)
+
+        connection = document.createElement('connnection')
+        # Needs to be updated to refer to id of connecting layer
+        connection.setAttribute('to', 'src')
+        plane.appendChild(connection)
+        weights_text = ' '.join([str(x).strip(',') for x in
+                                    self.W.get_value().flatten().tolist()])
+        connection_text = document.createTextNode(weights_text)
+        connection.appendChild(connection_text)
+
+    def _get_feature_map_size(self, image_height, image_width, filter_height,
+                              filter_width):
+        return (image_height - filter_height + 1, image_width - filter_width + 1)
+        
 
     def __get_state__(self):
         return (self.W, self.b)
@@ -115,6 +156,7 @@ class SingleLayerConvNN(object):
         type: 2-tuple or 2 element list
         parameter: pool_size: (maxpool height, maxpool width)
         """
+        self.image_shape = image_shape
         self.layer_0_input = x_data.reshape(image_shape)
         self.layer_0 = ConvPoolLayer(rng=rng, 
                                      x_data=self.layer_0_input,
@@ -126,11 +168,28 @@ class SingleLayerConvNN(object):
                                             filter_shape,
                                             pool_size)
         self.regression = TheanoLeastSquaresRegression(self.regression_input.T, 
-                                                    output_size,
+                                                    15*15*48,
                                                     batch_size)
         self.l1 = abs(self.layer_0.W).sum() + abs(self.regression.theta).sum()
         self.l2 = (self.layer_0.W ** 2).sum() + (self.regression.theta ** 2).sum()
         self.params = self.layer_0.params + self.regression.params
+
+    def to_xml(self, document, parent):
+        net = document.createElement('net')
+        net.setAttribute('name', 'single layer')
+        net.setAttribute('creator', 'eldog')
+        parent.appendChild(net)
+
+        src_plane = document.createElement('plane')
+        src_plane.setAttribute('id', 'src')
+        src_plane.setAttribute('type', 'source')
+        src_plane.setAttribute('featuremapsize', '%dx%d' 
+                               % (self.image_shape[2], self.image_shape[3]))
+        net.appendChild(src_plane)
+
+        self.layer_0.to_xml(document, net)
+        self.regression.to_xml(document, net)
+
 
 class TwoLayerConvNN(object):
     def __init__(self, rng, x_data, batch_size, image_shape, filter_shape,
@@ -163,7 +222,7 @@ class TwoLayerConvNN(object):
                                                        output_size_1, 
                                                        batch_size)
         self.l1 = abs(self.layer_0.W).sum() + abs(self.layer_1.W).sum() + abs(self.regression.theta).sum()
-        self.l2 = (self.regression.theta ** 2).sum() + (self.layer_0.W ** 2).sum() + (self.layer_1.W ** 2).sum() 
+        self.l2 = (self.regression.theta ** 2).sum()# + (self.layer_0.W ** 2).sum() + (self.layer_1.W ** 2).sum() 
         self.params = self.layer_0.params + self.layer_1.params + self.regression.params
         
 
@@ -176,38 +235,46 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
               reg_lambda_2=REG_LAMBDA_2, learning_rate=LEARNING_RATE,
               n_epochs=N_EPOCHS, n_hidden_units=N_HIDDEN_UNITS, display=True):
     train_data, validation_data, test_data, test_data_file_names = load_images(data_file_name)
+    do_validation = validation_data == []
     # get our data to fit our batch size
     train_data = trim_to_batch_size(train_data, batch_size)
-    validation_data = trim_to_batch_size(validation_data, batch_size)
+    if do_validation:
+        validation_data = trim_to_batch_size(validation_data, batch_size)
     test_data = trim_to_batch_size(test_data, batch_size)
     test_data_file_names = test_data_file_names[:len(test_data[0])]
     # Get the information from our shape before it becomes a shared variable 
     n_training_examples, n_channels, n_features = train_data[0].shape
-    n_validation_examples = validation_data[0].shape[0]
+    if do_validation:
+        n_validation_examples = validation_data[0].shape[0]
     n_testing_examples = test_data[0].shape[0]
     #err
 
     means, ranges = get_means_and_ranges(train_data[0])
     train_data[0] = normalize_zero_mean(train_data[0], means, ranges)
     test_data[0] = normalize_zero_mean(test_data[0], means, ranges)
-    validation_data[0] = normalize_zero_mean(validation_data[0], means, ranges)
+    if do_validation:
+        validation_data[0] = normalize_zero_mean(validation_data[0], means, ranges)
 
     real_scores = test_data[1].T.tolist()
-    real_val_scores = validation_data[1].T.tolist()
+    if do_validation:
+        real_val_scores = validation_data[1].T.tolist()
     # Turn our data into shared variables so we can make good use of the GPU 
     train_data_x, train_data_y  = to_theano_shared(train_data)
     test_data_x, test_data_y = to_theano_shared(test_data)
-    validation_data_x, validation_data_y = to_theano_shared(validation_data)
+    if do_validation:
+        validation_data_x, validation_data_y = to_theano_shared(validation_data)
     logging.info('data has been prepared')
 
     n_training_batches = n_training_examples // batch_size
-    n_validation_batches = n_validation_examples // batch_size
+    if do_validation:
+        n_validation_batches = n_validation_examples // batch_size
     n_testing_batches = n_testing_examples // batch_size
     logging.debug('using %d training batches' % n_training_batches)
-    logging.debug('using %d validation batches' % n_validation_batches)
+    if do_validation:
+        logging.debug('using %d validation batches' % n_validation_batches)
     logging.debug('using %d testing batches' % n_testing_batches)
 
-    rng = numpy.random.RandomState(1234)
+    rng = numpy.random.RandomState(2345)
     x = T.tensor3('x')
     y = T.vector('y')
     index = T.lscalar('index')
@@ -229,21 +296,23 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
                                  outputs=[cost, cnn.regression.y_pred],
                                  givens=test_givens)
 
-    validation_givens = {
-                    x:validation_data_x[index*batch_size : (index+1)*batch_size],
-                    y:validation_data_y[index*batch_size : (index+1)*batch_size]
-                        }
-    validate_model = theano.function([index],
-                                       outputs=[cost, cnn.regression.y_pred],
-                                       givens=validation_givens)
+    if do_validation:
+        validation_givens = {
+                        x:validation_data_x[index*batch_size : (index+1)*batch_size],
+                        y:validation_data_y[index*batch_size : (index+1)*batch_size]
+                            }
+        validate_model = theano.function([index],
+                                           outputs=[cost, cnn.regression.y_pred],
+                                           givens=validation_givens)
 
     g_params = []
     for param in cnn.params:
         g_param = T.grad(cost, param)
         g_params.append(g_param)
     updates = {}
+    adaptive_learning_rate = theano.shared(numpy.float32(learning_rate))
     for param, g_param in zip(cnn.params, g_params):
-        updates[param] = param - learning_rate * g_param
+        updates[param] = param - adaptive_learning_rate * g_param
     train_givens = {
                     x:train_data_x[index*batch_size : (index+1)*batch_size],
                     y:train_data_y[index*batch_size : (index+1)*batch_size]
@@ -278,27 +347,29 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
         old_cost = current_cost
         sum_cost = 0
         for batch_index in xrange(n_training_batches):
-            iteration = epochs * n_training_batches + batch_index
+            iteration = epochs * batch_size * n_training_batches + batch_index
             _cost = numpy.asarray(train_model(batch_index))
             costs_train.append((iteration, _cost))
             if (iteration + 1) % validation_frequency == 0:
-                sum_errors = 0
-                predictions = []
-                for i in xrange(n_validation_batches):
-                    error, next_predictions = validate_model(i)
-                    predictions += next_predictions[0].tolist()
-                    sum_errors += error
-                validation_cost = sum_errors / n_validation_batches
-                costs_validations.append((iteration, validation_cost))
-                pearsons = pearsonr(real_val_scores, predictions)
-                logging.info('current validation cost at epoch %d iter %d is %f pearsons %f' 
-                             % (epochs, iteration, validation_cost, pearsons[0]))
-                if validation_cost < best_validation_so_far:
-                    best_validation_so_far = validation_cost
-                    best_iter = iteration
+                if do_validation:
+                    sum_errors = 0
+                    predictions = []
+                    for i in xrange(n_validation_batches):
+                        error, next_predictions = validate_model(i)
+                        predictions += next_predictions[0].tolist()
+                        sum_errors += error
+                    validation_cost = sum_errors / n_validation_batches
+                    costs_validations.append((iteration, validation_cost))
+                    pearsons = pearsonr(real_val_scores, predictions)
+                    logging.info('current validation cost at epoch %d iter %d is %f pearsons %f' 
+                                 % (epochs, iteration, validation_cost, pearsons[0]))
+                if True: #validation_cost < best_validation_so_far:
+                    if do_validation:
+                        best_validation_so_far = validation_cost
+                        best_iter = iteration
 
-                    if validation_cost < best_validation_so_far * improvement_threshold:
-                        patience = max(patience, iteration * patience_increase)
+                        if validation_cost < best_validation_so_far * improvement_threshold:
+                            patience = max(patience, iteration * patience_increase)
                     sum_errors = 0
                     predictions = []
                     for test_index in  xrange(n_testing_batches):
@@ -311,18 +382,20 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
                     costs_pearsons.append((iteration, pearsons[0]))
                     logging.info('test error %f pearsons %f' % (test_score, pearsons[0]))
             sum_cost += _cost
-            if patience <= iteration:
-                done_looping = True
-                break
+            #if patience <= iteration:
+                #done_looping = True
+                #break
 
         current_cost = sum_cost / n_training_batches
-        logging.info('epoch % 5d patience %d error % 9f' % (epochs, patience, current_cost))
+        logging.info('epoch % 5d learning rate %f error % 9f' % (epochs,
+                                                                 adaptive_learning_rate.get_value(borrow=True), 
+                                                                 current_cost))
+        #if epochs >= 4:
+        #    adaptive_learning_rate.set_value(adaptive_learning_rate.get_value() / 2)
+
         epochs += 1
 
     end_time = time.clock()
-    
-    save_pickle((cnn.params), append_timestamp_to_file_name('cnn-%s' % VERSION))
-    logging.info('training cost minimised at: %f' % current_cost)
     logging.info('testing model')
     predictions = []
     sum_errors = 0
@@ -332,6 +405,10 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
         sum_errors += error
 
     # Print the results
+    cnn_xml = Document()
+    cnn.to_xml(cnn_xml, cnn_xml)
+    with open('cnn.xml', 'w') as cnn_file:
+        cnn_xml.writexml(cnn_file)
     logging.info('mean test error: %f' % (sum_errors / n_testing_batches))
     logging.debug('predictions %s', str(predictions))
     pearsons = pearsonr(real_scores, predictions)
@@ -346,12 +423,13 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
                      % (pearsons[0], reg_lambda_2),
                      'cnn', 
                      show=True)
-    plot_cost((zip(*costs_train)),
-              (zip(*costs_validations)),
-              (zip(*costs_tests)),
-              (zip(*costs_pearsons)),
-              'cnn with pearsons %f and batch size %d' 
-              % (pearsons[0], batch_size))
+    #plot_cost((zip(*costs_train)),
+    #          (zip(*costs_validations)),
+    #          (zip(*costs_tests)),
+    #          (zip(*costs_pearsons)),
+    #          'cnn with pearsons %f and batch size %d' 
+    #          % (pearsons[0], batch_size))
+    return pearsons[0]
 
 def build_argument_parser():
     argument_parser = ArgumentParser()
@@ -390,15 +468,18 @@ def main(argv=None):
         raise ValueError('Invalid log level: %s' % loglevel)
     logging.basicConfig(format='%(levelname)s: %(asctime)s: %(message)s',
                         level=numeric_level)
+    pearsons = []
     for data_file_name in args.data_file_name:
-        train_cnn(data_file_name,
+        pearsons.append(train_cnn(data_file_name,
                   batch_size=args.batch_size,
                   learning_rate=args.learning_rate,
                   reg_lambda_1=args.reg_lambda_1,
                   reg_lambda_2=args.reg_lambda_2,
                   n_epochs=args.n_epochs,
                   n_hidden_units=args.n_hidden_units,
-                  display=args.display)
+                  display=args.display))
+    pearsons = numpy.asarray(pearsons)
+    print('mean pearsons %f' % pearsons.mean())
     
 if __name__ == '__main__':
     exit(main())

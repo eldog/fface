@@ -46,6 +46,25 @@ class TheanoLeastSquaresRegression(object):
     def error(self, y):
         return (numpy.divide(numpy.subtract(y, self.y_pred), y))
 
+    def to_xml(self, document, parent):
+        plane = document.createElement('plane')
+        plane.setAttribute('id', 'output')
+        plane.setAttribute('type', 'regression')
+        parent.appendChild(plane)
+
+        bias = document.createElement('bias')
+        parent.appendChild(bias)
+        bias_text = document.createTextNode(str(self.bias.get_value()))
+        bias.appendChild(bias_text)
+
+        connection = document.createElement('connection')
+        connection.setAttribute('to', 'conv1')
+        parent.appendChild(connection)
+        weights_text = ' '.join([str(x).strip(',') for x in
+                                 self.theta.get_value().flatten().tolist()])
+        connection_text = document.createTextNode(weights_text)
+        connection.appendChild(connection_text)
+
     def __getstate__(self):
         return (self.theta, self.b, self.reg_lambda)
 

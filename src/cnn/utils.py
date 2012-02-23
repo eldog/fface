@@ -124,7 +124,6 @@ def plot_correlation(human_scores, machine_scores, images, title, file_name, sty
     pyplot.title(title, fontsize='small')
     pyplot.axes().set_aspect('equal', adjustable='box')
     for i, image in enumerate(images):
-        print(image)
         pyplot.imshow(Image.open(os.path.join(hotornot_dir, image)),
             extent=(human_scores[i] + 0.2, human_scores[i] - 0.2,
                 machine_scores[i] + 0.2, machine_scores[i] - 0.2))
