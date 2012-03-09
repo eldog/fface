@@ -1,0 +1,12 @@
+FFace
+=====
+Beauty prediction without landmarks
+-----------------------------------
+This is the third year project of Lloyd Henning. http://eldog.me.uk/
+
+Fascinating. So how do I get it working
+---------------------------------------
+So far it has been tested on Ubuntu 11.4 and 11.10
+
+    $ ./setup.sh
+
