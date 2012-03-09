@@ -32,6 +32,7 @@ class TheanoLeastSquaresRegression(object):
                     name='bias')
         self.bias = bias
         self.y_pred = T.dot(self.theta.T, x_data) + self.bias
+        self.n_features = n_features
         self.m = m
         self.reg_lambda = reg_lambda
         self.params = [self.theta, self.bias]
@@ -50,20 +51,27 @@ class TheanoLeastSquaresRegression(object):
         plane = document.createElement('plane')
         plane.setAttribute('id', 'output')
         plane.setAttribute('type', 'regression')
+        plane.setAttribute('neuronsize', '15x15')
         parent.appendChild(plane)
 
         bias = document.createElement('bias')
-        parent.appendChild(bias)
+        plane.appendChild(bias)
         bias_text = document.createTextNode(str(self.bias.get_value()))
         bias.appendChild(bias_text)
+        index = 0
 
-        connection = document.createElement('connection')
-        connection.setAttribute('to', 'conv1')
-        parent.appendChild(connection)
-        weights_text = ' '.join([str(x).strip(',') for x in
-                                 self.theta.get_value().flatten().tolist()])
-        connection_text = document.createTextNode(weights_text)
-        connection.appendChild(connection_text)
+        def chunk(l, step):
+            return [l[i:i+step] for i in xrange(0, len(l), step)]
+
+        chunks = chunk(self.theta.get_value().flatten().tolist(), 15 * 15)
+        for i, value  in enumerate(chunks):
+            connection = document.createElement('connection')
+            connection.setAttribute('to', 'conv%d' % (i,))
+            plane.appendChild(connection)
+            weights_text = ''.join([x.strip(',') for x in
+                str(chunks).strip('[]')])
+            connection_text = document.createTextNode(weights_text)
+            connection.appendChild(connection_text)
 
     def __getstate__(self):
         return (self.theta, self.b, self.reg_lambda)

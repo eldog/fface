@@ -59,6 +59,7 @@ class ConvPoolLayer(object):
         assert image_shape[1]==filter_shape[1]
         self.image_shape = image_shape
         self.filter_shape = filter_shape
+        self.pool_size = pool_size
         self.feature_map_size = self._get_feature_map_size(image_shape[2],
                                                       image_shape[3],
                                                       filter_shape[2],
@@ -92,28 +93,51 @@ class ConvPoolLayer(object):
         self.params = [self.W, self.b, self.b_c]
 
     def to_xml(self, document, parent):
-        plane = document.createElement('plane')
-        plane.setAttribute('id', 'conv1')
-        plane.setAttribute('type', 'convolution')
-        plane.setAttribute('featuremapsize', '%sx%s' 
-                          % self.feature_map_size)
-        plane.setAttribute('neuronsize', '%s%s'
-                          % (self.filter_shape[2], self.filter_shape[3]))
-        parent.appendChild(plane)
-        
-        bias = document.createElement('bias')
-        plane.appendChild(bias)
-        bias_text = document.createTextNode(str(self.b_c.get_value()))
-        bias.appendChild(bias_text)
+        # iterate over the feature maps
+        for i in xrange(self.filter_shape[0]):
+            plane = document.createElement('plane')
+            plane.setAttribute('id', 'conv%d' % (i,))
+            plane.setAttribute('type', 'convolution')
+            plane.setAttribute('featuremapsize', '%dx%d' 
+                              % self.feature_map_size)
+            plane.setAttribute('neuronsize', '%dx%d'
+                              % (self.filter_shape[2], self.filter_shape[3]))
+            parent.appendChild(plane)
+            
+            bias = document.createElement('bias')
+            plane.appendChild(bias)
+            bias_text = document.createTextNode(str(self.b_c.get_value()[i]))
+            bias.appendChild(bias_text)
 
-        connection = document.createElement('connnection')
-        # Needs to be updated to refer to id of connecting layer
-        connection.setAttribute('to', 'src')
-        plane.appendChild(connection)
-        weights_text = ' '.join([str(x).strip(',') for x in
-                                    self.W.get_value().flatten().tolist()])
-        connection_text = document.createTextNode(weights_text)
-        connection.appendChild(connection_text)
+            connection = document.createElement('connection')
+            # Needs to be updated to refer to id of connecting layer
+            connection.setAttribute('to', 'src')
+            plane.appendChild(connection)
+            weights_text = ' '.join([str(x).strip(',') for x in
+                                        self.W.get_value()[i].flatten().tolist()])
+            connection_text = document.createTextNode(weights_text)
+            connection.appendChild(connection_text)
+
+        for i in xrange(self.filter_shape[0]):
+            plane = document.createElement('plane')
+            plane.setAttribute('id', 'sub%d' % (i,))
+            plane.setAttribute('type', 'maxoperator')
+            plane.setAttribute('featuremapsize', '%dx%d' 
+                               % (self.feature_map_size[0] / 2, 
+                                  self.feature_map_size[1] / 2))
+            plane.setAttribute('neuronsize', '%dx%d' % self.pool_size)
+            parent.appendChild(plane)
+
+            bias = document.createElement('bias')
+            plane.appendChild(bias)
+            bias_text = document.createTextNode(str(self.b.get_value()[i]))
+            bias.appendChild(bias_text)
+
+            connection = document.createElement('connection')
+            connection.setAttribute('to', 'conv%d' % (i,))
+            plane.appendChild(connection)
+            connection_text = document.createTextNode('1.0')
+            connection.appendChild(connection_text)
 
     def _get_feature_map_size(self, image_height, image_width, filter_height,
                               filter_width):
@@ -249,11 +273,11 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
     n_testing_examples = test_data[0].shape[0]
     #err
 
-    means, ranges = get_means_and_ranges(train_data[0])
-    train_data[0] = normalize_zero_mean(train_data[0], means, ranges)
-    test_data[0] = normalize_zero_mean(test_data[0], means, ranges)
-    if do_validation:
-        validation_data[0] = normalize_zero_mean(validation_data[0], means, ranges)
+    #means, ranges = get_means_and_ranges(train_data[0])
+    #train_data[0] = normalize_zero_mean(train_data[0], means, ranges)
+    #test_data[0] = normalize_zero_mean(test_data[0], means, ranges)
+    #if do_validation:
+    #    validation_data[0] = normalize_zero_mean(validation_data[0], means, ranges)
 
     real_scores = test_data[1].T.tolist()
     if do_validation:
@@ -282,8 +306,8 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
     cnn = SingleLayerConvNN(rng, 
                             x, 
                             batch_size, 
-                            image_shape=(batch_size, 3, 128, 128),
-                            filter_shape=(48, 3, 9, 9),
+                            image_shape=(batch_size, 1, 128, 128),
+                            filter_shape=(48, 1, 9, 9),
                             pool_size=(8,8))
 
     cost = cnn.regression.cost(y) + reg_lambda_2 * cnn.l2
@@ -408,7 +432,7 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
     cnn_xml = Document()
     cnn.to_xml(cnn_xml, cnn_xml)
     with open('cnn.xml', 'w') as cnn_file:
-        cnn_xml.writexml(cnn_file)
+        cnn_xml.writexml(cnn_file, indent='  ', addindent='  ', newl='\n')
     logging.info('mean test error: %f' % (sum_errors / n_testing_batches))
     logging.debug('predictions %s', str(predictions))
     pearsons = pearsonr(real_scores, predictions)
@@ -429,6 +453,8 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
     #          (zip(*costs_pearsons)),
     #          'cnn with pearsons %f and batch size %d' 
     #          % (pearsons[0], batch_size))
+    #print('means', means)
+    #print('ranges', ranges)
     return pearsons[0]
 
 def build_argument_parser():

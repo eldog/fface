@@ -25,7 +25,7 @@ image_dir = os.path.join(os.path.dirname(__file__),
                          '../../../img/')
 hotornot_dir = os.path.join(os.path.dirname(__file__),
             '../../../data/eccv2010_beauty_data/hotornot_face')
-def load_images(hotornot_csv_file_name):
+def load_images(hotornot_csv_file_name, convert_type='L'):
     """
     Loads the data from csv file and assumes the images are in an immediate 
     sub-directory if the csv file.
@@ -44,8 +44,15 @@ def load_images(hotornot_csv_file_name):
         def append_row_to_data(data, row):
             def get_array_from_image(image_name):
                 image = Image.open(os.path.join(hotornot_dir, image_name))
-                return numpy.asarray([numpy.asarray(i).ravel() for i in
-                        image.convert('YCbCr').split()])
+                if convert_type == 'L':
+                    image_data = image.convert(convert_type)
+                elif convert_type ==  'YCvCr':
+                    image_data = [numpy.asarray(i).ravel() for i in
+                                  image.convert(convert_type).split()]
+                else:
+                    raise ValueError('Image convert type %s is not supported'
+                                     % (convert_type))
+                return numpy.asarray(image_data)
             # append the x_data
 
             y_cb_cr = get_array_from_image(row[0])
@@ -127,6 +134,7 @@ def plot_correlation(human_scores, machine_scores, images, title, file_name, sty
         pyplot.imshow(Image.open(os.path.join(hotornot_dir, image)),
             extent=(human_scores[i] + 0.2, human_scores[i] - 0.2,
                 machine_scores[i] + 0.2, machine_scores[i] - 0.2))
+        print(image, machine_scores[i])
     save_plot(file_name)
     if show:
         pyplot.show()
