@@ -13,19 +13,27 @@ set -o verbose
 #
 # Find the root of our repo
 #
-SCRIPT_SOURCE="${BASH_SOURCE[0]}"
-while [ -h "$SCRIPT_SOURCE" ] ; do 
-    SCRIPT_SOURCE="$(readlink ${SCRIPT_SOURCE})"; done
-REPO_ROOT_DIR="$( cd -P "$( dirname "$SCRIPT_SOURCE" )" && pwd )"
+script_source="${BASH_SOURCE[0]}"
+while [ -h "$script_source" ] ; do 
+    script_source="$(readlink ${script_source})"; done
+readonly REPO_ROOT_DIR="$( cd -P "$( dirname "$script_source" )" && pwd )"
+unset script_source
 
 #
-# Get our script directory
+#   Get our script directory
 #
-SCRIPT_BASE="scripts"
-SCRIPT_DIR="${REPO_ROOT_DIR}/${SCRIPT_BASE}"
-unset SCRIPT_BASE
+readonly SCRIPT_DIR="${REPO_ROOT_DIR}/scripts"
 
-ANDROID_INSTALL_SCRIPT="android-install.sh"
+#
+#   install the android stuff
+#
+readonly ANDROID_INSTALL_SCRIPT="android-install.sh"
 "${SCRIPT_DIR}/${ANDROID_INSTALL_SCRIPT}"
 
+#
+#   install the theano stuff
+#
+#THEANO_INSTALL_SCRIPT="theano-install.sh"
+#"${SCRIPT_DIR}/${THEANO_INSTALL_SCRIPT}"
+#unset THEANO_INSTALL_SCRIPT
 
