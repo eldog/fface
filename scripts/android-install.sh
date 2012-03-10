@@ -51,14 +51,20 @@ tar -C "${HOME}" -xjf "${ANDROID_NDK_TAR}"
 ################################################################################
 
 echo 'fetching opencv android...'
-readonly OPENCV_ANDROID='OpenCV-2.3.1-android-bin.tar.bz2'
+readonly OPENCV_ANDROID='android-opencv-2.3.1'
 readonly OPENCV_ANDROID_TAR="${DOWNLOAD_DIR}/${OPENCV_ANDROID}"
 open_cv_url='http://sourceforge.net/projects/opencvlibrary/files'
-open_cv_url="${open_cv_url}/opencv-android/2.3.1"
-readonly OPENCV_ANDROID_URL="${open_cv_url}/${OPENCV_ANDROID}"
+open_cv_url="${open_cv_url}/opencv-android/2.3.1/"
+readonly OPENCV_ANDROID_URL="${open_cv_url}/OpenCV-2.3.1-android-bin.tar.bz2"
 unset open_cv_url
 curl --location "${OPENCV_ANDROID_URL}" --output "${OPENCV_ANDROID_TAR}"
-tar -C "${HOME}" -xjf "${OPENCV_ANDROID_TAR}"
+readonly OPENCV_ANDROID_INSTALL_DIR="${HOME}/${OPENCV_ANDROID}"
+if [[ -d "${OPENCV_ANDROID_INSTALL_DIR}" ]]; then
+    rm -rf "${OPENCV_ANDROID_INSTALL_DIR}"
+fi
+mkdir "${OPENCV_ANDROID_INSTALL_DIR}"
+tar -C "${OPENCV_ANDROID_INSTALL_DIR}" \
+    -xjf "${OPENCV_ANDROID_TAR}"
 
 ################################################################################
 #
