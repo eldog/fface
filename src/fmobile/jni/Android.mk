@@ -13,8 +13,7 @@ common_COPY_HEADERS := \
 
 # Device static library
 include $(CLEAR_VARS)
-
-include ../includeOpenCV.mk
+OPENCV_MK_PATH:=$(HOME)/android-opencv-2.3.1/OpenCV-2.3.1/share/OpenCV/OpenCV.mk
 ifeq ("$(wildcard $(OPENCV_MK_PATH))","")
 	#try to load OpenCV.mk from default install location
 	include $(TOOLCHAIN_PREBUILT_ROOT)/user/share/OpenCV/OpenCV.mk
