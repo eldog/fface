@@ -40,8 +40,8 @@ tar -C "${HOME}" -xzf "${ANDROID_SDK_TAR}"
 echo 'fetching android ndk...'
 readonly ANDROID_NDK_TAR="${DOWNLOAD_DIR}/android-ndk-r7b-linux-x86.tar.bz2"
 curl --location \
-    'http://dl.google.com/android/ndk/android-ndk-r7b-linux-x86.tar.bz2' \
-    --output "${ANDROID_NDK_TAR}"
+     'http://dl.google.com/android/ndk/android-ndk-r7b-linux-x86.tar.bz2' \
+     --output "${ANDROID_NDK_TAR}"
 tar -C "${HOME}" -xjf "${ANDROID_NDK_TAR}"
 
 ################################################################################
@@ -57,8 +57,7 @@ open_cv_url='http://sourceforge.net/projects/opencvlibrary/files'
 open_cv_url="${open_cv_url}/opencv-android/2.3.1"
 readonly OPENCV_ANDROID_URL="${open_cv_url}/${OPENCV_ANDROID}"
 unset open_cv_url
-curl --location "${OPENCV_ANDROID_URL}" \
-    --output "${OPENCV_ANDROID_TAR}"
+curl --location "${OPENCV_ANDROID_URL}" --output "${OPENCV_ANDROID_TAR}"
 tar -C "${HOME}" -xjf "${OPENCV_ANDROID_TAR}"
 
 ################################################################################
@@ -73,8 +72,7 @@ if [[ ! -d "${LOG_DOG_DIR}" ]]; then
     git clone git://github.com/dj-foxxy/logdog.git "${LOG_DOG_DIR}"
 fi
 readonly ANDROID_SDK_TOOL_DIR="${HOME}/android-sdk-linux/tools"
-ln --force  "${LOG_DOG_DIR}/src/logdog.py" \
-    "${ANDROID_SDK_TOOL_DIR}/logdog"
+ln --force "${LOG_DOG_DIR}/src/logdog.py" "${ANDROID_SDK_TOOL_DIR}/logdog"
 
 ################################################################################
 #
