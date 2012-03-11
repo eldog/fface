@@ -123,8 +123,8 @@ class ConvPoolLayer(object):
             plane.setAttribute('id', 'sub%d' % (i,))
             plane.setAttribute('type', 'maxoperator')
             plane.setAttribute('featuremapsize', '%dx%d' 
-                               % (self.feature_map_size[0] / 2, 
-                                  self.feature_map_size[1] / 2))
+                               % (self.feature_map_size[0], 
+                                  self.feature_map_size[1]))
             plane.setAttribute('neuronsize', '%dx%d' % self.pool_size)
             parent.appendChild(plane)
 

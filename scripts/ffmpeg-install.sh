@@ -13,7 +13,8 @@ if [[ -d "${FFMPEG_INSTALL_DIR}" ]]; then
 fi
 
 echo 'fetching ffmpeg...'
-git clone -b release/0.7 https://github.com/FFmpeg/FFmpeg.git "${FFMPEG_INSTALL_DIR}"
+git clone -b \
+    release/0.7 https://github.com/FFmpeg/FFmpeg.git "${FFMPEG_INSTALL_DIR}"
 
 old_dir=`pwd`
 cd "${FFMPEG_INSTALL_DIR}"

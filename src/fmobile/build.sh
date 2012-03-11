@@ -3,7 +3,7 @@
 set -o errexit
 set -o nounset
 
-~/android-ndk-r7b/android-ndk-r7b/ndk-build
+~/android-ndk-r7b/ndk-build
 ant clean
 ant uninstall
 ant debug install
