@@ -18,11 +18,7 @@ set -o verbose
 #
 ################################################################################
 
-script_source="${BASH_SOURCE[0]}"
-while [ -h "$script_source" ] ; do 
-    script_source="$(readlink ${script_source})"; done
-readonly REPO_ROOT_DIR="$( cd -P "$( dirname "$script_source" )" && pwd )"
-unset script_source
+readonly REPO_ROOT_DIR="$(readlink -f -- "$(dirname -- "${0}")")"
 
 ################################################################################
 #
