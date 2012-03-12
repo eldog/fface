@@ -33,10 +33,15 @@ SET(CONVNET_SRCS
         jni_fexample/ConvNet.cpp
 )
 
-# Sources for test files
-SET (TESTIMG_SRCS example/testimg.cpp)
-SET (TESTMNIST_SRCS example/testmnist.cpp)
-SET (FTESTIMG_SRCS fexample/ftestimg.cpp)
+# Sources for tests
+SET(TEST_SRCS
+        test/cvmaxoperatorplane_test.cpp
+)
+
+# Sources for example files
+SET (EXAMPLEIMG_SRCS example/testimg.cpp)
+SET (EXAMPLEMNIST_SRCS example/testmnist.cpp)
+SET (FEXAMPLEIMG_SRCS fexample/ftestimg.cpp)
 
 SET (FACEDETECT_SRCS 
         fexample/facedetect.cpp
@@ -47,8 +52,13 @@ SET (EXECUTABLE_DIR bin)
 
 # Here are common paths (in addition to default paths)
 SET (INCLUDE_SEARCH_PATH
-	/usr/local/include /usr/include /usr/local/include/opencv/
-	/usr/include/opencv/ /usr/local/include/opencv2/ c:/program\ files/opencv/include
+	/usr/local/include 
+        /usr/include
+        /usr/local/include/boost
+        /usr/local/include/opencv/
+	/usr/include/opencv/ 
+        /usr/local/include/opencv2/ 
+        c:/program\ files/opencv/include
         /usr/lib/jvm/default-java/include
         /usr/lib/jvm/default-java/include/linux
 )
@@ -63,14 +73,27 @@ FIND_PATH(HIGHGUI_H NAMES highgui.h PATHS ${INCLUDE_SEARCH_PATH} )
 FIND_PATH(EXPAT_H NAMES expat.h	PATHS ${INCLUDE_SEARCH_PATH} )
 FIND_PATH(JNI_H NAMES jni.h PATHS ${INCLUDE_SEARCH_PATH} )
 FIND_PATH(JNI_MD_H NAMES jni_m.h PATHS ${INCLUDE_SEARCH_PATH} )
+# Boost
+FIND_PATH(BOOST_H NAMES unit_test.h PATHS ${INCLUDE_SEARCH_PATH} )
 
 FIND_LIBRARY(LIBCV NAMES libopencv_core.so PATHS ${LIBRARY_SEARCH_PATH} )
 FIND_LIBRARY(LIBHIGHGUI NAMES libopencv_highgui.so PATHS ${LIBRARY_SEARCH_PATH})
 FIND_LIBRARY(LIBEXPAT NAMES expat PATHS ${LIBRARY_SEARCH_PATH} )
 FIND_LIBRARY(LIBOBJDETECT NAMES libopencv_objdetect.so PATHS ${LIBRARY_SEARCH_PATH})
 FIND_LIBRARY(LIBIMGPROC NAMES libopencv_imgproc.so PATHS ${LIBRARY_SEARCH_PATH})
+FIND_LIBRARY(LIB_BOOST_TEST 
+                NAMES libboost_unit_test_framework.so 
+                PATHS ${LIBRARY_SEARCH_PATH})
 
-INCLUDE_DIRECTORIES(include/ jni_fexample/ fexample/ ${CV_H} ${HIGHGUI_H} ${EXPAT_H} ${JNI_H} ${JNI_M_H})
+INCLUDE_DIRECTORIES(include/ 
+                    jni_fexample/
+                    fexample/
+                    ${CV_H}
+                    ${HIGHGUI_H}
+                    ${EXPAT_H}
+                    ${JNI_H}
+                    ${JNI_M_H}
+)
 
 # Here is out library
 ADD_LIBRARY(cvconvnet STATIC ${CVCONVNET_SRCS})
@@ -78,10 +101,11 @@ ADD_LIBRARY(ConvNet SHARED ${CONVNET_SRCS})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 # Here are our test programs
-ADD_EXECUTABLE(testimg ${TESTIMG_SRCS})
-ADD_EXECUTABLE(testmnist ${TESTMNIST_SRCS})
-ADD_EXECUTABLE(ftestimg ${FTESTIMG_SRCS})
+ADD_EXECUTABLE(testimg ${EXAMPLEIMG_SRCS})
+ADD_EXECUTABLE(testmnist ${EXAMPLEMNIST_SRCS})
+ADD_EXECUTABLE(ftestimg ${FEXAMPLEIMG_SRCS})
 ADD_EXECUTABLE(facedetect ${FACEDETECT_SRCS})
+ADD_EXECUTABLE(test_cvmaxoperatorplane ${TEST_SRCS})
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 # Compiler options are different for Release and Debug
@@ -121,4 +145,6 @@ TARGET_LINK_LIBRARIES(ftestimg
                       ${LIBEXPAT}
                       ${LIBIMGPROC})
 TARGET_LINK_LIBRARIES(ConvNet cvconvnet ${LIBCV} ${LIBHIGHGUI} ${LIBEXPAT})
+TARGET_LINK_LIBRARIES(test_cvmaxoperatorplane ${LIB_BOOST_TEST} )
+
 

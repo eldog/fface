@@ -151,6 +151,19 @@ ftestimg/fast:
 .PHONY : ftestimg/fast
 
 #=============================================================================
+# Target rules for targets named test_cvmaxoperatorplane
+
+# Build rule for target.
+test_cvmaxoperatorplane: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 test_cvmaxoperatorplane
+.PHONY : test_cvmaxoperatorplane
+
+# fast build rule for target.
+test_cvmaxoperatorplane/fast:
+	$(MAKE) -f CMakeFiles/test_cvmaxoperatorplane.dir/build.make CMakeFiles/test_cvmaxoperatorplane.dir/build
+.PHONY : test_cvmaxoperatorplane/fast
+
+#=============================================================================
 # Target rules for targets named testimg
 
 # Build rule for target.
@@ -584,6 +597,30 @@ src/cvsubsamplingplane.cpp.s:
 	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsubsamplingplane.cpp.s
 .PHONY : src/cvsubsamplingplane.cpp.s
 
+test/cvmaxoperatorplane_test.o: test/cvmaxoperatorplane_test.cpp.o
+.PHONY : test/cvmaxoperatorplane_test.o
+
+# target to build an object file
+test/cvmaxoperatorplane_test.cpp.o:
+	$(MAKE) -f CMakeFiles/test_cvmaxoperatorplane.dir/build.make CMakeFiles/test_cvmaxoperatorplane.dir/test/cvmaxoperatorplane_test.cpp.o
+.PHONY : test/cvmaxoperatorplane_test.cpp.o
+
+test/cvmaxoperatorplane_test.i: test/cvmaxoperatorplane_test.cpp.i
+.PHONY : test/cvmaxoperatorplane_test.i
+
+# target to preprocess a source file
+test/cvmaxoperatorplane_test.cpp.i:
+	$(MAKE) -f CMakeFiles/test_cvmaxoperatorplane.dir/build.make CMakeFiles/test_cvmaxoperatorplane.dir/test/cvmaxoperatorplane_test.cpp.i
+.PHONY : test/cvmaxoperatorplane_test.cpp.i
+
+test/cvmaxoperatorplane_test.s: test/cvmaxoperatorplane_test.cpp.s
+.PHONY : test/cvmaxoperatorplane_test.s
+
+# target to generate assembly for a file
+test/cvmaxoperatorplane_test.cpp.s:
+	$(MAKE) -f CMakeFiles/test_cvmaxoperatorplane.dir/build.make CMakeFiles/test_cvmaxoperatorplane.dir/test/cvmaxoperatorplane_test.cpp.s
+.PHONY : test/cvmaxoperatorplane_test.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -596,6 +633,7 @@ help:
 	@echo "... facedetect"
 	@echo "... ftestimg"
 	@echo "... rebuild_cache"
+	@echo "... test_cvmaxoperatorplane"
 	@echo "... testimg"
 	@echo "... testmnist"
 	@echo "... example/testimg.o"
@@ -649,6 +687,9 @@ help:
 	@echo "... src/cvsubsamplingplane.o"
 	@echo "... src/cvsubsamplingplane.i"
 	@echo "... src/cvsubsamplingplane.s"
+	@echo "... test/cvmaxoperatorplane_test.o"
+	@echo "... test/cvmaxoperatorplane_test.i"
+	@echo "... test/cvmaxoperatorplane_test.s"
 .PHONY : help
 
 
