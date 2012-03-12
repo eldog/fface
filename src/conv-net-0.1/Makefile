@@ -177,64 +177,94 @@ testmnist/fast:
 .PHONY : testmnist/fast
 
 # target to build an object file
-ftest/cnn.o:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/ftest/cnn.o
-.PHONY : ftest/cnn.o
+example/testimg.o:
+	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/example/testimg.o
+.PHONY : example/testimg.o
 
 # target to preprocess a source file
-ftest/cnn.i:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/ftest/cnn.i
-.PHONY : ftest/cnn.i
+example/testimg.i:
+	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/example/testimg.i
+.PHONY : example/testimg.i
 
 # target to generate assembly for a file
-ftest/cnn.s:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/ftest/cnn.s
-.PHONY : ftest/cnn.s
+example/testimg.s:
+	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/example/testimg.s
+.PHONY : example/testimg.s
 
 # target to build an object file
-ftest/facedetect.o:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/ftest/facedetect.o
-.PHONY : ftest/facedetect.o
+example/testmnist.o:
+	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/example/testmnist.o
+.PHONY : example/testmnist.o
 
 # target to preprocess a source file
-ftest/facedetect.i:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/ftest/facedetect.i
-.PHONY : ftest/facedetect.i
+example/testmnist.i:
+	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/example/testmnist.i
+.PHONY : example/testmnist.i
 
 # target to generate assembly for a file
-ftest/facedetect.s:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/ftest/facedetect.s
-.PHONY : ftest/facedetect.s
+example/testmnist.s:
+	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/example/testmnist.s
+.PHONY : example/testmnist.s
 
 # target to build an object file
-ftest/ftestimg.o:
-	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/ftest/ftestimg.o
-.PHONY : ftest/ftestimg.o
+fexample/cnn.o:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/cnn.o
+.PHONY : fexample/cnn.o
 
 # target to preprocess a source file
-ftest/ftestimg.i:
-	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/ftest/ftestimg.i
-.PHONY : ftest/ftestimg.i
+fexample/cnn.i:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/cnn.i
+.PHONY : fexample/cnn.i
 
 # target to generate assembly for a file
-ftest/ftestimg.s:
-	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/ftest/ftestimg.s
-.PHONY : ftest/ftestimg.s
+fexample/cnn.s:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/cnn.s
+.PHONY : fexample/cnn.s
 
 # target to build an object file
-jni_ftest/ConvNet.o:
-	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_ftest/ConvNet.o
-.PHONY : jni_ftest/ConvNet.o
+fexample/facedetect.o:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/facedetect.o
+.PHONY : fexample/facedetect.o
 
 # target to preprocess a source file
-jni_ftest/ConvNet.i:
-	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_ftest/ConvNet.i
-.PHONY : jni_ftest/ConvNet.i
+fexample/facedetect.i:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/facedetect.i
+.PHONY : fexample/facedetect.i
 
 # target to generate assembly for a file
-jni_ftest/ConvNet.s:
-	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_ftest/ConvNet.s
-.PHONY : jni_ftest/ConvNet.s
+fexample/facedetect.s:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/facedetect.s
+.PHONY : fexample/facedetect.s
+
+# target to build an object file
+fexample/ftestimg.o:
+	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/fexample/ftestimg.o
+.PHONY : fexample/ftestimg.o
+
+# target to preprocess a source file
+fexample/ftestimg.i:
+	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/fexample/ftestimg.i
+.PHONY : fexample/ftestimg.i
+
+# target to generate assembly for a file
+fexample/ftestimg.s:
+	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/fexample/ftestimg.s
+.PHONY : fexample/ftestimg.s
+
+# target to build an object file
+jni_fexample/ConvNet.o:
+	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_fexample/ConvNet.o
+.PHONY : jni_fexample/ConvNet.o
+
+# target to preprocess a source file
+jni_fexample/ConvNet.i:
+	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_fexample/ConvNet.i
+.PHONY : jni_fexample/ConvNet.i
+
+# target to generate assembly for a file
+jni_fexample/ConvNet.s:
+	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_fexample/ConvNet.s
+.PHONY : jni_fexample/ConvNet.s
 
 # target to build an object file
 src/cvconvnet.o:
@@ -401,36 +431,6 @@ src/cvsubsamplingplane.s:
 	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsubsamplingplane.s
 .PHONY : src/cvsubsamplingplane.s
 
-# target to build an object file
-tst/testimg.o:
-	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/tst/testimg.o
-.PHONY : tst/testimg.o
-
-# target to preprocess a source file
-tst/testimg.i:
-	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/tst/testimg.i
-.PHONY : tst/testimg.i
-
-# target to generate assembly for a file
-tst/testimg.s:
-	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/tst/testimg.s
-.PHONY : tst/testimg.s
-
-# target to build an object file
-tst/testmnist.o:
-	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/tst/testmnist.o
-.PHONY : tst/testmnist.o
-
-# target to preprocess a source file
-tst/testmnist.i:
-	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/tst/testmnist.i
-.PHONY : tst/testmnist.i
-
-# target to generate assembly for a file
-tst/testmnist.s:
-	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/tst/testmnist.s
-.PHONY : tst/testmnist.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -445,18 +445,24 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... testimg"
 	@echo "... testmnist"
-	@echo "... ftest/cnn.o"
-	@echo "... ftest/cnn.i"
-	@echo "... ftest/cnn.s"
-	@echo "... ftest/facedetect.o"
-	@echo "... ftest/facedetect.i"
-	@echo "... ftest/facedetect.s"
-	@echo "... ftest/ftestimg.o"
-	@echo "... ftest/ftestimg.i"
-	@echo "... ftest/ftestimg.s"
-	@echo "... jni_ftest/ConvNet.o"
-	@echo "... jni_ftest/ConvNet.i"
-	@echo "... jni_ftest/ConvNet.s"
+	@echo "... example/testimg.o"
+	@echo "... example/testimg.i"
+	@echo "... example/testimg.s"
+	@echo "... example/testmnist.o"
+	@echo "... example/testmnist.i"
+	@echo "... example/testmnist.s"
+	@echo "... fexample/cnn.o"
+	@echo "... fexample/cnn.i"
+	@echo "... fexample/cnn.s"
+	@echo "... fexample/facedetect.o"
+	@echo "... fexample/facedetect.i"
+	@echo "... fexample/facedetect.s"
+	@echo "... fexample/ftestimg.o"
+	@echo "... fexample/ftestimg.i"
+	@echo "... fexample/ftestimg.s"
+	@echo "... jni_fexample/ConvNet.o"
+	@echo "... jni_fexample/ConvNet.i"
+	@echo "... jni_fexample/ConvNet.s"
 	@echo "... src/cvconvnet.o"
 	@echo "... src/cvconvnet.i"
 	@echo "... src/cvconvnet.s"
@@ -490,12 +496,6 @@ help:
 	@echo "... src/cvsubsamplingplane.o"
 	@echo "... src/cvsubsamplingplane.i"
 	@echo "... src/cvsubsamplingplane.s"
-	@echo "... tst/testimg.o"
-	@echo "... tst/testimg.i"
-	@echo "... tst/testimg.s"
-	@echo "... tst/testmnist.o"
-	@echo "... tst/testmnist.i"
-	@echo "... tst/testmnist.s"
 .PHONY : help
 
 

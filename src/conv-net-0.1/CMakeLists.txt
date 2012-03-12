@@ -28,17 +28,17 @@ SET(CVCONVNET_SRCS
 )
 
 SET(CONVNET_SRCS
-        jni_ftest/ConvNet.cpp
+        jni_fexample/ConvNet.cpp
 )
 
 # Sources for test files
-SET(TESTIMG_SRCS tst/testimg.cpp)
-SET(TESTMNIST_SRCS tst/testmnist.cpp)
-SET(FTESTIMG_SRCS ftest/ftestimg.cpp)
+SET(TESTIMG_SRCS example/testimg.cpp)
+SET(TESTMNIST_SRCS example/testmnist.cpp)
+SET(FTESTIMG_SRCS fexample/ftestimg.cpp)
 
 SET(FACEDETECT_SRCS 
-        ftest/facedetect.cpp
-        ftest/cnn.cpp)
+        fexample/facedetect.cpp
+        fexample/cnn.cpp)
 
 # Here are common paths (in addition to default paths)
 SET (INCLUDE_SEARCH_PATH
@@ -65,7 +65,7 @@ FIND_LIBRARY(LIBEXPAT NAMES expat PATHS ${LIBRARY_SEARCH_PATH} )
 FIND_LIBRARY(LIBOBJDETECT NAMES libopencv_objdetect.so PATHS ${LIBRARY_SEARCH_PATH})
 FIND_LIBRARY(LIBIMGPROC NAMES libopencv_imgproc.so PATHS ${LIBRARY_SEARCH_PATH})
 
-INCLUDE_DIRECTORIES(include/ jni_ftest/ ftest/ ${CV_H} ${HIGHGUI_H} ${EXPAT_H} ${JNI_H} ${JNI_M_H})
+INCLUDE_DIRECTORIES(include/ jni_fexample/ fexample/ ${CV_H} ${HIGHGUI_H} ${EXPAT_H} ${JNI_H} ${JNI_M_H})
 
 # Here is out library
 ADD_LIBRARY(cvconvnet STATIC ${CVCONVNET_SRCS})
@@ -100,8 +100,18 @@ TARGET_LINK_LIBRARIES(facedetect
                       ${LIBEXPAT} 
                       ${LIBOBJDETECT}
                       ${LIBIMGPROC})
-TARGET_LINK_LIBRARIES(testimg cvconvnet ${LIBCV} ${LIBHIGHGUI} ${LIBEXPAT})
+TARGET_LINK_LIBRARIES(testimg 
+                      cvconvnet 
+                      ${LIBCV}
+                      ${LIBHIGHGUI}
+                      ${LIBEXPAT}
+                      ${LIBIMGPROC})
 TARGET_LINK_LIBRARIES(testmnist cvconvnet ${LIBCV} ${LIBHIGHGUI} ${LIBEXPAT})
-TARGET_LINK_LIBRARIES(ftestimg cvconvnet ${LIBCV} ${LIBHIGHGUI} ${LIBEXPAT})
+TARGET_LINK_LIBRARIES(ftestimg 
+                      cvconvnet
+                      ${LIBCV}
+                      ${LIBHIGHGUI}
+                      ${LIBEXPAT}
+                      ${LIBIMGPROC})
 TARGET_LINK_LIBRARIES(ConvNet cvconvnet ${LIBCV} ${LIBHIGHGUI} ${LIBEXPAT})
 
