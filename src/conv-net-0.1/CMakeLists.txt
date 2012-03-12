@@ -145,6 +145,6 @@ TARGET_LINK_LIBRARIES(ftestimg
                       ${LIBEXPAT}
                       ${LIBIMGPROC})
 TARGET_LINK_LIBRARIES(ConvNet cvconvnet ${LIBCV} ${LIBHIGHGUI} ${LIBEXPAT})
-TARGET_LINK_LIBRARIES(test_cvmaxoperatorplane ${LIB_BOOST_TEST} )
+TARGET_LINK_LIBRARIES(test_cvmaxoperatorplane cvconvnet ${LIBCV} ${LIB_BOOST_TEST} )
 
 
