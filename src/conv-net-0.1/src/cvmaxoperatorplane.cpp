@@ -81,9 +81,9 @@ CvMaxOperatorPlane::~CvMaxOperatorPlane ( )
 CvMat * CvMaxOperatorPlane::fprop()
 {
     assert( m_connected );
-    for (int row = 0; row < m_fmapsz.height * 2; row += m_neurosz.height)
+    for (int row = 0; row < m_fmapsz.height; row++)
     {
-        for (int col = 0; col < m_fmapsz.width * 2; col += m_neurosz.width)
+        for (int col = 0; col < m_fmapsz.width; col++)
         {
             double max_so_far = -1000.0;
             // Probably only going to be one input feature map anyway
@@ -94,7 +94,11 @@ CvMat * CvMaxOperatorPlane::fprop()
                {
                    for (int filter_col = 0; filter_col < m_neurosz.width; filter_col++)
                    {
-                       double fmap_value = cvmGet(fmap, row + filter_row, col + filter_col);
+                       double fmap_value = cvmGet(fmap, 
+                                                  (row * m_neurosz.height)
+                                                  + filter_row, 
+                                                  (col * m_neurosz.width)
+                                                  + filter_col);
                        if (fmap_value > max_so_far)
                        {
                            max_so_far = fmap_value;
@@ -106,6 +110,7 @@ CvMat * CvMaxOperatorPlane::fprop()
             cvmSet(m_fmap, row, col, max_so_far);
         } // for col
     } // for row
+
     return m_fmap;
 } // CvMaxOperatorPlane::fprop() 
 

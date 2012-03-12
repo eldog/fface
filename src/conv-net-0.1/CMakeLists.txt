@@ -148,3 +148,4 @@ TARGET_LINK_LIBRARIES(ConvNet cvconvnet ${LIBCV} ${LIBHIGHGUI} ${LIBEXPAT})
 TARGET_LINK_LIBRARIES(test_cvmaxoperatorplane cvconvnet ${LIBCV} ${LIB_BOOST_TEST} )
 
 
+
