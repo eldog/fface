@@ -176,260 +176,413 @@ testmnist/fast:
 	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/build
 .PHONY : testmnist/fast
 
-# target to build an object file
-example/testimg.o:
-	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/example/testimg.o
+example/testimg.o: example/testimg.cpp.o
 .PHONY : example/testimg.o
 
-# target to preprocess a source file
-example/testimg.i:
-	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/example/testimg.i
+# target to build an object file
+example/testimg.cpp.o:
+	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/example/testimg.cpp.o
+.PHONY : example/testimg.cpp.o
+
+example/testimg.i: example/testimg.cpp.i
 .PHONY : example/testimg.i
 
-# target to generate assembly for a file
-example/testimg.s:
-	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/example/testimg.s
+# target to preprocess a source file
+example/testimg.cpp.i:
+	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/example/testimg.cpp.i
+.PHONY : example/testimg.cpp.i
+
+example/testimg.s: example/testimg.cpp.s
 .PHONY : example/testimg.s
 
-# target to build an object file
-example/testmnist.o:
-	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/example/testmnist.o
+# target to generate assembly for a file
+example/testimg.cpp.s:
+	$(MAKE) -f CMakeFiles/testimg.dir/build.make CMakeFiles/testimg.dir/example/testimg.cpp.s
+.PHONY : example/testimg.cpp.s
+
+example/testmnist.o: example/testmnist.cpp.o
 .PHONY : example/testmnist.o
 
-# target to preprocess a source file
-example/testmnist.i:
-	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/example/testmnist.i
+# target to build an object file
+example/testmnist.cpp.o:
+	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/example/testmnist.cpp.o
+.PHONY : example/testmnist.cpp.o
+
+example/testmnist.i: example/testmnist.cpp.i
 .PHONY : example/testmnist.i
 
-# target to generate assembly for a file
-example/testmnist.s:
-	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/example/testmnist.s
+# target to preprocess a source file
+example/testmnist.cpp.i:
+	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/example/testmnist.cpp.i
+.PHONY : example/testmnist.cpp.i
+
+example/testmnist.s: example/testmnist.cpp.s
 .PHONY : example/testmnist.s
 
-# target to build an object file
-fexample/cnn.o:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/cnn.o
+# target to generate assembly for a file
+example/testmnist.cpp.s:
+	$(MAKE) -f CMakeFiles/testmnist.dir/build.make CMakeFiles/testmnist.dir/example/testmnist.cpp.s
+.PHONY : example/testmnist.cpp.s
+
+fexample/cnn.o: fexample/cnn.cpp.o
 .PHONY : fexample/cnn.o
 
-# target to preprocess a source file
-fexample/cnn.i:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/cnn.i
+# target to build an object file
+fexample/cnn.cpp.o:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/cnn.cpp.o
+.PHONY : fexample/cnn.cpp.o
+
+fexample/cnn.i: fexample/cnn.cpp.i
 .PHONY : fexample/cnn.i
 
-# target to generate assembly for a file
-fexample/cnn.s:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/cnn.s
+# target to preprocess a source file
+fexample/cnn.cpp.i:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/cnn.cpp.i
+.PHONY : fexample/cnn.cpp.i
+
+fexample/cnn.s: fexample/cnn.cpp.s
 .PHONY : fexample/cnn.s
 
-# target to build an object file
-fexample/facedetect.o:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/facedetect.o
+# target to generate assembly for a file
+fexample/cnn.cpp.s:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/cnn.cpp.s
+.PHONY : fexample/cnn.cpp.s
+
+fexample/facedetect.o: fexample/facedetect.cpp.o
 .PHONY : fexample/facedetect.o
 
-# target to preprocess a source file
-fexample/facedetect.i:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/facedetect.i
+# target to build an object file
+fexample/facedetect.cpp.o:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/facedetect.cpp.o
+.PHONY : fexample/facedetect.cpp.o
+
+fexample/facedetect.i: fexample/facedetect.cpp.i
 .PHONY : fexample/facedetect.i
 
-# target to generate assembly for a file
-fexample/facedetect.s:
-	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/facedetect.s
+# target to preprocess a source file
+fexample/facedetect.cpp.i:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/facedetect.cpp.i
+.PHONY : fexample/facedetect.cpp.i
+
+fexample/facedetect.s: fexample/facedetect.cpp.s
 .PHONY : fexample/facedetect.s
 
-# target to build an object file
-fexample/ftestimg.o:
-	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/fexample/ftestimg.o
+# target to generate assembly for a file
+fexample/facedetect.cpp.s:
+	$(MAKE) -f CMakeFiles/facedetect.dir/build.make CMakeFiles/facedetect.dir/fexample/facedetect.cpp.s
+.PHONY : fexample/facedetect.cpp.s
+
+fexample/ftestimg.o: fexample/ftestimg.cpp.o
 .PHONY : fexample/ftestimg.o
 
-# target to preprocess a source file
-fexample/ftestimg.i:
-	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/fexample/ftestimg.i
+# target to build an object file
+fexample/ftestimg.cpp.o:
+	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/fexample/ftestimg.cpp.o
+.PHONY : fexample/ftestimg.cpp.o
+
+fexample/ftestimg.i: fexample/ftestimg.cpp.i
 .PHONY : fexample/ftestimg.i
 
-# target to generate assembly for a file
-fexample/ftestimg.s:
-	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/fexample/ftestimg.s
+# target to preprocess a source file
+fexample/ftestimg.cpp.i:
+	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/fexample/ftestimg.cpp.i
+.PHONY : fexample/ftestimg.cpp.i
+
+fexample/ftestimg.s: fexample/ftestimg.cpp.s
 .PHONY : fexample/ftestimg.s
 
-# target to build an object file
-jni_fexample/ConvNet.o:
-	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_fexample/ConvNet.o
+# target to generate assembly for a file
+fexample/ftestimg.cpp.s:
+	$(MAKE) -f CMakeFiles/ftestimg.dir/build.make CMakeFiles/ftestimg.dir/fexample/ftestimg.cpp.s
+.PHONY : fexample/ftestimg.cpp.s
+
+jni_fexample/ConvNet.o: jni_fexample/ConvNet.cpp.o
 .PHONY : jni_fexample/ConvNet.o
 
-# target to preprocess a source file
-jni_fexample/ConvNet.i:
-	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_fexample/ConvNet.i
+# target to build an object file
+jni_fexample/ConvNet.cpp.o:
+	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_fexample/ConvNet.cpp.o
+.PHONY : jni_fexample/ConvNet.cpp.o
+
+jni_fexample/ConvNet.i: jni_fexample/ConvNet.cpp.i
 .PHONY : jni_fexample/ConvNet.i
 
-# target to generate assembly for a file
-jni_fexample/ConvNet.s:
-	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_fexample/ConvNet.s
+# target to preprocess a source file
+jni_fexample/ConvNet.cpp.i:
+	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_fexample/ConvNet.cpp.i
+.PHONY : jni_fexample/ConvNet.cpp.i
+
+jni_fexample/ConvNet.s: jni_fexample/ConvNet.cpp.s
 .PHONY : jni_fexample/ConvNet.s
 
-# target to build an object file
-src/cvconvnet.o:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnet.o
+# target to generate assembly for a file
+jni_fexample/ConvNet.cpp.s:
+	$(MAKE) -f CMakeFiles/ConvNet.dir/build.make CMakeFiles/ConvNet.dir/jni_fexample/ConvNet.cpp.s
+.PHONY : jni_fexample/ConvNet.cpp.s
+
+src/cvconvnet.o: src/cvconvnet.cpp.o
 .PHONY : src/cvconvnet.o
 
-# target to preprocess a source file
-src/cvconvnet.i:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnet.i
+# target to build an object file
+src/cvconvnet.cpp.o:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnet.cpp.o
+.PHONY : src/cvconvnet.cpp.o
+
+src/cvconvnet.i: src/cvconvnet.cpp.i
 .PHONY : src/cvconvnet.i
 
-# target to generate assembly for a file
-src/cvconvnet.s:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnet.s
+# target to preprocess a source file
+src/cvconvnet.cpp.i:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnet.cpp.i
+.PHONY : src/cvconvnet.cpp.i
+
+src/cvconvnet.s: src/cvconvnet.cpp.s
 .PHONY : src/cvconvnet.s
 
-# target to build an object file
-src/cvconvnetparser.o:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnetparser.o
+# target to generate assembly for a file
+src/cvconvnet.cpp.s:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnet.cpp.s
+.PHONY : src/cvconvnet.cpp.s
+
+src/cvconvnetparser.o: src/cvconvnetparser.cpp.o
 .PHONY : src/cvconvnetparser.o
 
-# target to preprocess a source file
-src/cvconvnetparser.i:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnetparser.i
+# target to build an object file
+src/cvconvnetparser.cpp.o:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnetparser.cpp.o
+.PHONY : src/cvconvnetparser.cpp.o
+
+src/cvconvnetparser.i: src/cvconvnetparser.cpp.i
 .PHONY : src/cvconvnetparser.i
 
-# target to generate assembly for a file
-src/cvconvnetparser.s:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnetparser.s
+# target to preprocess a source file
+src/cvconvnetparser.cpp.i:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnetparser.cpp.i
+.PHONY : src/cvconvnetparser.cpp.i
+
+src/cvconvnetparser.s: src/cvconvnetparser.cpp.s
 .PHONY : src/cvconvnetparser.s
 
-# target to build an object file
-src/cvconvolutionplane.o:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvolutionplane.o
+# target to generate assembly for a file
+src/cvconvnetparser.cpp.s:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvnetparser.cpp.s
+.PHONY : src/cvconvnetparser.cpp.s
+
+src/cvconvolutionplane.o: src/cvconvolutionplane.cpp.o
 .PHONY : src/cvconvolutionplane.o
 
-# target to preprocess a source file
-src/cvconvolutionplane.i:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvolutionplane.i
+# target to build an object file
+src/cvconvolutionplane.cpp.o:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvolutionplane.cpp.o
+.PHONY : src/cvconvolutionplane.cpp.o
+
+src/cvconvolutionplane.i: src/cvconvolutionplane.cpp.i
 .PHONY : src/cvconvolutionplane.i
 
-# target to generate assembly for a file
-src/cvconvolutionplane.s:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvolutionplane.s
+# target to preprocess a source file
+src/cvconvolutionplane.cpp.i:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvolutionplane.cpp.i
+.PHONY : src/cvconvolutionplane.cpp.i
+
+src/cvconvolutionplane.s: src/cvconvolutionplane.cpp.s
 .PHONY : src/cvconvolutionplane.s
 
-# target to build an object file
-src/cvfastsigmoid.o:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvfastsigmoid.o
+# target to generate assembly for a file
+src/cvconvolutionplane.cpp.s:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvconvolutionplane.cpp.s
+.PHONY : src/cvconvolutionplane.cpp.s
+
+src/cvfastsigmoid.o: src/cvfastsigmoid.cpp.o
 .PHONY : src/cvfastsigmoid.o
 
-# target to preprocess a source file
-src/cvfastsigmoid.i:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvfastsigmoid.i
+# target to build an object file
+src/cvfastsigmoid.cpp.o:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvfastsigmoid.cpp.o
+.PHONY : src/cvfastsigmoid.cpp.o
+
+src/cvfastsigmoid.i: src/cvfastsigmoid.cpp.i
 .PHONY : src/cvfastsigmoid.i
 
-# target to generate assembly for a file
-src/cvfastsigmoid.s:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvfastsigmoid.s
+# target to preprocess a source file
+src/cvfastsigmoid.cpp.i:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvfastsigmoid.cpp.i
+.PHONY : src/cvfastsigmoid.cpp.i
+
+src/cvfastsigmoid.s: src/cvfastsigmoid.cpp.s
 .PHONY : src/cvfastsigmoid.s
 
-# target to build an object file
-src/cvgenericplane.o:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvgenericplane.o
+# target to generate assembly for a file
+src/cvfastsigmoid.cpp.s:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvfastsigmoid.cpp.s
+.PHONY : src/cvfastsigmoid.cpp.s
+
+src/cvgenericplane.o: src/cvgenericplane.cpp.o
 .PHONY : src/cvgenericplane.o
 
-# target to preprocess a source file
-src/cvgenericplane.i:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvgenericplane.i
+# target to build an object file
+src/cvgenericplane.cpp.o:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvgenericplane.cpp.o
+.PHONY : src/cvgenericplane.cpp.o
+
+src/cvgenericplane.i: src/cvgenericplane.cpp.i
 .PHONY : src/cvgenericplane.i
 
-# target to generate assembly for a file
-src/cvgenericplane.s:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvgenericplane.s
+# target to preprocess a source file
+src/cvgenericplane.cpp.i:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvgenericplane.cpp.i
+.PHONY : src/cvgenericplane.cpp.i
+
+src/cvgenericplane.s: src/cvgenericplane.cpp.s
 .PHONY : src/cvgenericplane.s
 
-# target to build an object file
-src/cvmaxoperatorplane.o:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxoperatorplane.o
+# target to generate assembly for a file
+src/cvgenericplane.cpp.s:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvgenericplane.cpp.s
+.PHONY : src/cvgenericplane.cpp.s
+
+src/cvmaxoperatorplane.o: src/cvmaxoperatorplane.cpp.o
 .PHONY : src/cvmaxoperatorplane.o
 
-# target to preprocess a source file
-src/cvmaxoperatorplane.i:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxoperatorplane.i
+# target to build an object file
+src/cvmaxoperatorplane.cpp.o:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxoperatorplane.cpp.o
+.PHONY : src/cvmaxoperatorplane.cpp.o
+
+src/cvmaxoperatorplane.i: src/cvmaxoperatorplane.cpp.i
 .PHONY : src/cvmaxoperatorplane.i
 
-# target to generate assembly for a file
-src/cvmaxoperatorplane.s:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxoperatorplane.s
+# target to preprocess a source file
+src/cvmaxoperatorplane.cpp.i:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxoperatorplane.cpp.i
+.PHONY : src/cvmaxoperatorplane.cpp.i
+
+src/cvmaxoperatorplane.s: src/cvmaxoperatorplane.cpp.s
 .PHONY : src/cvmaxoperatorplane.s
 
-# target to build an object file
-src/cvmaxplane.o:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxplane.o
+# target to generate assembly for a file
+src/cvmaxoperatorplane.cpp.s:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxoperatorplane.cpp.s
+.PHONY : src/cvmaxoperatorplane.cpp.s
+
+src/cvmaxplane.o: src/cvmaxplane.cpp.o
 .PHONY : src/cvmaxplane.o
 
-# target to preprocess a source file
-src/cvmaxplane.i:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxplane.i
+# target to build an object file
+src/cvmaxplane.cpp.o:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxplane.cpp.o
+.PHONY : src/cvmaxplane.cpp.o
+
+src/cvmaxplane.i: src/cvmaxplane.cpp.i
 .PHONY : src/cvmaxplane.i
 
-# target to generate assembly for a file
-src/cvmaxplane.s:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxplane.s
+# target to preprocess a source file
+src/cvmaxplane.cpp.i:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxplane.cpp.i
+.PHONY : src/cvmaxplane.cpp.i
+
+src/cvmaxplane.s: src/cvmaxplane.cpp.s
 .PHONY : src/cvmaxplane.s
 
-# target to build an object file
-src/cvrbfplane.o:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvrbfplane.o
+# target to generate assembly for a file
+src/cvmaxplane.cpp.s:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvmaxplane.cpp.s
+.PHONY : src/cvmaxplane.cpp.s
+
+src/cvrbfplane.o: src/cvrbfplane.cpp.o
 .PHONY : src/cvrbfplane.o
 
-# target to preprocess a source file
-src/cvrbfplane.i:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvrbfplane.i
+# target to build an object file
+src/cvrbfplane.cpp.o:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvrbfplane.cpp.o
+.PHONY : src/cvrbfplane.cpp.o
+
+src/cvrbfplane.i: src/cvrbfplane.cpp.i
 .PHONY : src/cvrbfplane.i
 
-# target to generate assembly for a file
-src/cvrbfplane.s:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvrbfplane.s
+# target to preprocess a source file
+src/cvrbfplane.cpp.i:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvrbfplane.cpp.i
+.PHONY : src/cvrbfplane.cpp.i
+
+src/cvrbfplane.s: src/cvrbfplane.cpp.s
 .PHONY : src/cvrbfplane.s
 
-# target to build an object file
-src/cvregressionplane.o:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvregressionplane.o
+# target to generate assembly for a file
+src/cvrbfplane.cpp.s:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvrbfplane.cpp.s
+.PHONY : src/cvrbfplane.cpp.s
+
+src/cvregressionplane.o: src/cvregressionplane.cpp.o
 .PHONY : src/cvregressionplane.o
 
-# target to preprocess a source file
-src/cvregressionplane.i:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvregressionplane.i
+# target to build an object file
+src/cvregressionplane.cpp.o:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvregressionplane.cpp.o
+.PHONY : src/cvregressionplane.cpp.o
+
+src/cvregressionplane.i: src/cvregressionplane.cpp.i
 .PHONY : src/cvregressionplane.i
 
-# target to generate assembly for a file
-src/cvregressionplane.s:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvregressionplane.s
+# target to preprocess a source file
+src/cvregressionplane.cpp.i:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvregressionplane.cpp.i
+.PHONY : src/cvregressionplane.cpp.i
+
+src/cvregressionplane.s: src/cvregressionplane.cpp.s
 .PHONY : src/cvregressionplane.s
 
-# target to build an object file
-src/cvsourceplane.o:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsourceplane.o
+# target to generate assembly for a file
+src/cvregressionplane.cpp.s:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvregressionplane.cpp.s
+.PHONY : src/cvregressionplane.cpp.s
+
+src/cvsourceplane.o: src/cvsourceplane.cpp.o
 .PHONY : src/cvsourceplane.o
 
-# target to preprocess a source file
-src/cvsourceplane.i:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsourceplane.i
+# target to build an object file
+src/cvsourceplane.cpp.o:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsourceplane.cpp.o
+.PHONY : src/cvsourceplane.cpp.o
+
+src/cvsourceplane.i: src/cvsourceplane.cpp.i
 .PHONY : src/cvsourceplane.i
 
-# target to generate assembly for a file
-src/cvsourceplane.s:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsourceplane.s
+# target to preprocess a source file
+src/cvsourceplane.cpp.i:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsourceplane.cpp.i
+.PHONY : src/cvsourceplane.cpp.i
+
+src/cvsourceplane.s: src/cvsourceplane.cpp.s
 .PHONY : src/cvsourceplane.s
 
-# target to build an object file
-src/cvsubsamplingplane.o:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsubsamplingplane.o
+# target to generate assembly for a file
+src/cvsourceplane.cpp.s:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsourceplane.cpp.s
+.PHONY : src/cvsourceplane.cpp.s
+
+src/cvsubsamplingplane.o: src/cvsubsamplingplane.cpp.o
 .PHONY : src/cvsubsamplingplane.o
 
-# target to preprocess a source file
-src/cvsubsamplingplane.i:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsubsamplingplane.i
+# target to build an object file
+src/cvsubsamplingplane.cpp.o:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsubsamplingplane.cpp.o
+.PHONY : src/cvsubsamplingplane.cpp.o
+
+src/cvsubsamplingplane.i: src/cvsubsamplingplane.cpp.i
 .PHONY : src/cvsubsamplingplane.i
 
-# target to generate assembly for a file
-src/cvsubsamplingplane.s:
-	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsubsamplingplane.s
+# target to preprocess a source file
+src/cvsubsamplingplane.cpp.i:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsubsamplingplane.cpp.i
+.PHONY : src/cvsubsamplingplane.cpp.i
+
+src/cvsubsamplingplane.s: src/cvsubsamplingplane.cpp.s
 .PHONY : src/cvsubsamplingplane.s
+
+# target to generate assembly for a file
+src/cvsubsamplingplane.cpp.s:
+	$(MAKE) -f CMakeFiles/cvconvnet.dir/build.make CMakeFiles/cvconvnet.dir/src/cvsubsamplingplane.cpp.s
+.PHONY : src/cvsubsamplingplane.cpp.s
 
 # Help Target
 help:

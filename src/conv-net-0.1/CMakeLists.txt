@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+
 PROJECT (CvConvolutionalNet)
 
 # IF() ENDIF() statements
@@ -32,13 +34,16 @@ SET(CONVNET_SRCS
 )
 
 # Sources for test files
-SET(TESTIMG_SRCS example/testimg.cpp)
-SET(TESTMNIST_SRCS example/testmnist.cpp)
-SET(FTESTIMG_SRCS fexample/ftestimg.cpp)
+SET (TESTIMG_SRCS example/testimg.cpp)
+SET (TESTMNIST_SRCS example/testmnist.cpp)
+SET (FTESTIMG_SRCS fexample/ftestimg.cpp)
 
-SET(FACEDETECT_SRCS 
+SET (FACEDETECT_SRCS 
         fexample/facedetect.cpp
         fexample/cnn.cpp)
+
+# Ouptut directory for binaries
+SET (EXECUTABLE_DIR bin)
 
 # Here are common paths (in addition to default paths)
 SET (INCLUDE_SEARCH_PATH
@@ -70,12 +75,14 @@ INCLUDE_DIRECTORIES(include/ jni_fexample/ fexample/ ${CV_H} ${HIGHGUI_H} ${EXPA
 # Here is out library
 ADD_LIBRARY(cvconvnet STATIC ${CVCONVNET_SRCS})
 ADD_LIBRARY(ConvNet SHARED ${CONVNET_SRCS})
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 # Here are our test programs
 ADD_EXECUTABLE(testimg ${TESTIMG_SRCS})
 ADD_EXECUTABLE(testmnist ${TESTMNIST_SRCS})
 ADD_EXECUTABLE(ftestimg ${FTESTIMG_SRCS})
 ADD_EXECUTABLE(facedetect ${FACEDETECT_SRCS})
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 # Compiler options are different for Release and Debug
 IF (CMAKE_BUILD_TYPE MATCHES Release)
