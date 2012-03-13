@@ -2,15 +2,16 @@
 #define BOOST_TEST_MODULE cvmaxoperatorplane test
 #define CHECK_MESSAGE(a, b) {\
                                 BOOST_CHECK_MESSAGE(a == b,\
-                                                  "target:" << b <<\ 
-                                                  " result:" << a);\
-                            }
+                                                  "target:" << b <<\
+                                        " result:" << a);\
+}
 #include <vector>
 #include <boost/test/unit_test.hpp>
 #include <opencv/cv.h>
 
 #include "cvgenericplane.h"
 #include "cvmaxoperatorplane.h"
+#include "cvregressionplane.h"
 #include "cvsourceplane.h"
 
 CvSourcePlane createTestCvSourcePlane()
@@ -25,9 +26,56 @@ CvMaxOperatorPlane createTestMaxOperatorPlane(CvSize featureMapSize,
     return CvMaxOperatorPlane("test_max", featureMapSize, neuronSize);
 } // createTestMaxOperatorPlane
 
+BOOST_AUTO_TEST_CASE( cvregressionplane_test )
+{
+    std::vector<CvGenericPlane *> parentPlanes;
+    for (int i = 0; i < 1; i++)
+    {
+        CvSourcePlane* sourcePlane = new CvSourcePlane("test_source_plane",
+                                                       cvSize(3, 3));
+        // test the basic forward propagation
+        double sourcePlaneFeatureMapValues[] = {
+                                                  1,   1,   1,
+                                                  1,   1,   1,
+                                                  1,   1,   1
+                                               };
+                            
+        CvMat sourcePlaneFeatureMap = cvMat(3, 
+                                            3, 
+                                            CV_64FC1, 
+                                            sourcePlaneFeatureMapValues);
+
+        CHECK_MESSAGE(sourcePlane->setfmap(&sourcePlaneFeatureMap), 1);
+        parentPlanes.push_back(sourcePlane);
+
+        // Don't forget the bias
+        double regressionPlaneWeights[] = {
+                                              1,
+                                              1,   1,   1,
+                                              1,   1,   1,
+                                              1,   1,   1
+                                          };
+        std::vector<double> weights(regressionPlaneWeights,
+                                    regressionPlaneWeights 
+                                    + 
+                                    sizeof(regressionPlaneWeights)
+                                    / sizeof(double));
+
+        CvRegressionPlane* regressionPlane 
+                    = new CvRegressionPlane("test_regression_plane",
+                                            cvSize(3, 3));
+        CHECK_MESSAGE(regressionPlane->connto(parentPlanes),  1);
+        CHECK_MESSAGE(regressionPlane->setweight(weights), 1);
+
+    } // for
+    
+    //CvRegressionPlane regressionPlane 
+    //   = new CvRegressionPlane("test_regression_plane",
+    //                            cvSize()
+} // BOOST_AUTO_TEST_CASE
+
 BOOST_AUTO_TEST_CASE( cvmaxoperatorplane_test )
 {
-    // Create our max operatortest plane
     CvSourcePlane sourcePlane = createTestCvSourcePlane();
     
     // test the basic forward propagation
