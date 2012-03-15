@@ -60,13 +60,14 @@ class TheanoLeastSquaresRegression(object):
         bias.appendChild(bias_text)
         index = 0
 
+        # splits array into evenly sized chunks
         def chunk(l, step):
             return [l[i:i+step] for i in xrange(0, len(l), step)]
 
         chunks = chunk(self.theta.get_value().flatten().tolist(), 15 * 15)
         for i, value  in enumerate(chunks):
             connection = document.createElement('connection')
-            connection.setAttribute('to', 'conv%d' % (i,))
+            connection.setAttribute('to', 'sub%d' % (i,))
             plane.appendChild(connection)
             weights_text = ''.join([x.strip(',') for x in
                 str(chunks).strip('[]')])

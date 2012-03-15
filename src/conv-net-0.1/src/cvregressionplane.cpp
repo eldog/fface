@@ -86,19 +86,17 @@ CvMat* CvRegressionPlane::fprop()
     // Start with the bias
     int w_index = 0;
     double sum = m_weight[w_index];
-    cout << "m_weight size: " << m_weight.size() << endl;
     for (int pfmap_index = 0; pfmap_index < m_pplane.size(); pfmap_index++)
     {
         CvMat *fmap = m_pfmap[pfmap_index];
-        for (int row = 0; row < m_fmapsz.height; row++)
+        for (int row = 0; row < m_neurosz.height; row++)
         {
-            for (int col = 0; col < m_fmapsz.width; col++)
+            for (int col = 0; col < m_neurosz.width; col++)
             {
                sum += m_weight[++w_index] * cvmGet(fmap, row, col);
             } // for col
         } // for row
     } // for pfmap_index
-
     cvmSet(m_fmap, 0, 0, sum);
     return m_fmap;
 } // CvRegressionPlane::fprop()

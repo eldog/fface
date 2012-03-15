@@ -6,7 +6,11 @@ from __future__ import print_function
 
 from argparse import ArgumentParser
 import math
+import os
 import sys
+
+import Image
+import numpy
 
 class CArray(object):
     """
@@ -61,9 +65,18 @@ class CArray(object):
         str_list.append('}\n')
         return ''.join(str_list)
 
-    def to_file(self, file_path):
+    def to_file(self, file_path, image=False):
         with open(file_path, 'w') as output_file:
             output_file.write(str(self))
+        if image:
+            height = int(len(self.array) / self.width)
+            rgb_data = [[val, val, val] for val in self.array]
+            data = numpy.array(rgb_data, dtype=numpy.uint8).reshape(self.width,
+                                                                    height,
+                                                                    3)
+            output_image = Image.fromarray(data)
+            with open('%s.bmp' % os.path.splitext(file_path)[0], 'w') as image_output_file:
+                output_image.save(image_output_file)
 
 
 def build_argument_parser():
@@ -76,6 +89,8 @@ def build_argument_parser():
     argument_parser.add_argument('array_type',
                                  type=str,
                                  choices=CArray.OPTIONS)
+    argument_parser.add_argument('--image',
+                                 action='store_true')
     return argument_parser
 
 def main(argv=None):
@@ -86,7 +101,7 @@ def main(argv=None):
     c_array = CArray(args.n_items_in_array, 
                      args.array_width,
                      args.array_type)
-    c_array.to_file(args.output_file_path)
+    c_array.to_file(args.output_file_path, image=args.image)
 
 if __name__ == '__main__':
     exit(main())

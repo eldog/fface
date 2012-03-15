@@ -5,10 +5,12 @@
                                                   "target:" << b <<\
                                         " result:" << a);\
 }
+
 #include <vector>
 #include <boost/test/unit_test.hpp>
 #include <opencv/cv.h>
 
+#include "cvconvolutionplane.h"
 #include "cvgenericplane.h"
 #include "cvmaxoperatorplane.h"
 #include "cvregressionplane.h"
@@ -25,6 +27,156 @@ CvMaxOperatorPlane createTestMaxOperatorPlane(CvSize featureMapSize,
 {
     return CvMaxOperatorPlane("test_max", featureMapSize, neuronSize);
 } // createTestMaxOperatorPlane
+
+
+BOOST_AUTO_TEST_CASE( full_fprop_test )
+{
+    CvSourcePlane sourcePlane = createTestCvSourcePlane();
+    
+    // test the basic forward propagation
+    double sourcePlaneFeatureMapValues[] = 
+                        {
+                              0,   1,   2,   3,   4,   5,   6,   7,
+                              8,   9,  10,  11,  12,  13,  14,  15,
+                             16,  17,  18,  19,  20,  21,  22,  23,
+                             24,  25,  26,  27,  28,  29,  30,  31,
+                             32,  33,  34,  35,  36,  37,  38,  39,
+                             40,  41,  42,  43,  44,  45,  46,  47,
+                             48,  49,  50,  51,  52,  53,  54,  55,
+                             56,  57,  58,  59,  60,  61,  62,  63
+                        };
+    CvMat sourcePlaneFeatureMap = cvMat(8, 
+                                        8, 
+                                        CV_64FC1, 
+                                        sourcePlaneFeatureMapValues);
+
+    CHECK_MESSAGE(sourcePlane.setfmap(&sourcePlaneFeatureMap), 1);
+
+    std::vector<CvGenericPlane *> parentPlanes;
+    parentPlanes.push_back(&sourcePlane);
+
+    CvConvolutionPlane* convolutionPlane= new CvConvolutionPlane("test_conv",
+                                                                cvSize(6, 6),
+                                                                cvSize(3, 3));
+     // Don't forget the bias
+    double convolutionPlaneWeights[] = {
+                                          0.1,
+                                          0.1,   0.1,   0.1,
+                                          0.1,   0.1,   0.1,
+                                          0.1,   0.1,   0.1
+                                      };
+    std::vector<double> weights(convolutionPlaneWeights,
+                                convolutionPlaneWeights 
+                                + 
+                                sizeof(convolutionPlaneWeights)
+                                / sizeof(double));
+
+    CHECK_MESSAGE(convolutionPlane->connto(parentPlanes), 1);
+    CHECK_MESSAGE(convolutionPlane->setweight(weights), 1);
+
+    std::vector<CvGenericPlane*> maxParentPlanes;
+    maxParentPlanes.push_back(convolutionPlane);
+
+    CvMaxOperatorPlane* maxOperatorPlane = 
+        new CvMaxOperatorPlane("test_max_plane", cvSize(3, 3), cvSize(2, 2));
+    CHECK_MESSAGE(maxOperatorPlane->connto(maxParentPlanes), 1);
+
+    std::vector<CvGenericPlane*> regressionParentPlanes;
+    regressionParentPlanes.push_back(maxOperatorPlane);
+    
+    double regressionPlaneWeights[] = {
+                                              1,
+                                              1,   1,   1,
+                                              1,   1,   1,
+                                              1,   1,   1
+                                      };
+    std::vector<double> regWeights(regressionPlaneWeights,
+                                    regressionPlaneWeights 
+                                    + 
+                                    sizeof(regressionPlaneWeights)
+                                    / sizeof(double));
+
+
+    CvRegressionPlane* regressionPlane = 
+        new CvRegressionPlane("test_reg_plane", cvSize(3, 3));
+    CHECK_MESSAGE(regressionPlane->connto(regressionParentPlanes), 1);
+    CHECK_MESSAGE(regressionPlane->setweight(regWeights), 1);
+    
+    CvMat* fprop1 = convolutionPlane->fprop();
+    CHECK_MESSAGE(cvmGet(fprop1, 0, 0), tanh(8.2));
+    CHECK_MESSAGE(cvmGet(fprop1, 0, 1), tanh(9.1));
+    CHECK_MESSAGE(cvmGet(fprop1, 1, 0), tanh(15.4));
+    CHECK_MESSAGE(cvmGet(fprop1, 1, 1), tanh(16.3));
+    CHECK_MESSAGE(cvmGet(fprop1, 5, 5), tanh(48.7));
+
+    CvMat* maxfprop = maxOperatorPlane->fprop();
+    CHECK_MESSAGE(cvmGet(maxfprop, 0, 0), 16.3);
+    CHECK_MESSAGE(cvmGet(maxfprop, 0, 1), 18.1);
+    CHECK_MESSAGE(cvmGet(maxfprop, 0, 2), 19.9);
+    CHECK_MESSAGE(cvmGet(maxfprop, 1, 0), 30.7);
+    CHECK_MESSAGE(cvmGet(maxfprop, 1, 1), 32.5);
+    CHECK_MESSAGE(cvmGet(maxfprop, 1, 2), 34.3);
+    CHECK_MESSAGE(cvmGet(maxfprop, 2, 0), 45.1);
+    CHECK_MESSAGE(cvmGet(maxfprop, 2, 1), 46.9);
+    CHECK_MESSAGE(cvmGet(maxfprop, 2, 2), 48.7);
+
+    CvMat* regfprop = regressionPlane->fprop();
+    CHECK_MESSAGE(cvmGet(regfprop, 0, 0), 293.5); 
+} // BOOST_AUTO_TEST_CASE
+
+BOOST_AUTO_TEST_CASE( cvconvolutionplane_test )
+{
+    CvSourcePlane sourcePlane = createTestCvSourcePlane();
+    
+    // test the basic forward propagation
+    double sourcePlaneFeatureMapValues[] = 
+                        {
+                              0,   1,   2,   3,   4,   5,   6,   7,
+                              8,   9,  10,  11,  12,  13,  14,  15,
+                             16,  17,  18,  19,  20,  21,  22,  23,
+                             24,  25,  26,  27,  28,  29,  30,  31,
+                             32,  33,  34,  35,  36,  37,  38,  39,
+                             40,  41,  42,  43,  44,  45,  46,  47,
+                             48,  49,  50,  51,  52,  53,  54,  55,
+                             56,  57,  58,  59,  60,  61,  62,  63
+                        };
+    CvMat sourcePlaneFeatureMap = cvMat(8, 
+                                        8, 
+                                        CV_64FC1, 
+                                        sourcePlaneFeatureMapValues);
+
+    CHECK_MESSAGE(sourcePlane.setfmap(&sourcePlaneFeatureMap), 1);
+
+    std::vector<CvGenericPlane *> parentPlanes;
+    parentPlanes.push_back(&sourcePlane);
+
+    CvConvolutionPlane* convolutionPlane= new CvConvolutionPlane("test_conv",
+                                                                cvSize(6, 6),
+                                                                cvSize(3, 3));
+     // Don't forget the bias
+    double convolutionPlaneWeights[] = {
+                                          0.1,
+                                          0.1,   0.1,   0.1,
+                                          0.1,   0.1,   0.1,
+                                          0.1,   0.1,   0.1
+                                      };
+    std::vector<double> weights(convolutionPlaneWeights,
+                                convolutionPlaneWeights 
+                                + 
+                                sizeof(convolutionPlaneWeights)
+                                / sizeof(double));
+
+    CHECK_MESSAGE(convolutionPlane->connto(parentPlanes), 1);
+    CHECK_MESSAGE(convolutionPlane->setweight(weights), 1)
+
+    CvMat* fprop1 = convolutionPlane->fprop();
+    CHECK_MESSAGE(cvmGet(fprop1, 0, 0), tanh(8.2));
+    CHECK_MESSAGE(cvmGet(fprop1, 0, 1), tanh(9.1));
+    CHECK_MESSAGE(cvmGet(fprop1, 1, 0), tanh(15.4));
+    CHECK_MESSAGE(cvmGet(fprop1, 1, 1), tanh(16.3));
+    CHECK_MESSAGE(cvmGet(fprop1, 5, 5), tanh(48.7));
+     
+} // BOOST_AUTO_TEST_CASE
 
 BOOST_AUTO_TEST_CASE( cvregressionplane_test )
 {
@@ -66,6 +218,31 @@ BOOST_AUTO_TEST_CASE( cvregressionplane_test )
                                             cvSize(3, 3));
         CHECK_MESSAGE(regressionPlane->connto(parentPlanes),  1);
         CHECK_MESSAGE(regressionPlane->setweight(weights), 1);
+        CHECK_MESSAGE(cvmGet(regressionPlane->fprop(), 0, 0), 10);
+
+        parentPlanes.push_back(sourcePlane);
+        // Don't forget the bias
+        double regressionPlaneWeights1[] = {
+                                              1,
+                                              1,   1,   1,
+                                              1,   1,   1,
+                                              1,   1,   1,
+                                              1,   1,   1,
+                                              1,   1,   1,
+                                              1,   1,   1
+                                          };
+        std::vector<double> weights1(regressionPlaneWeights1,
+                                    regressionPlaneWeights1 
+                                    + 
+                                    sizeof(regressionPlaneWeights1)
+                                    / sizeof(double));
+
+        CvRegressionPlane* regressionPlane1
+                    = new CvRegressionPlane("test_regrssion_plane2",
+                                            cvSize(3, 3));
+        CHECK_MESSAGE(regressionPlane1->connto(parentPlanes), 1);
+        CHECK_MESSAGE(regressionPlane1->setweight(weights1), 1);
+        CHECK_MESSAGE(cvmGet(regressionPlane1->fprop(), 0, 0), 19);
 
     } // for
     
