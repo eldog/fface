@@ -2,12 +2,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from xml.dom.minidom import Document
 import csv
 import datetime
 import logging
 import os
 import pickle
 
+import cv
+import cv2
 import Image
 from matplotlib import pyplot
 import numpy
@@ -16,7 +19,7 @@ import theano
 __all__ = ('DEFAULT_DATA_FILE_NAME', 'get_face_space', 'load_images',
            'plot_correlation', 'save_pickle', 'get_pickle', 'to_theano_shared',
            'append_timestamp_to_file_name', 'trim_to_batch_size', 'plot_cost',
-           'normalize_zero_mean', 'get_means_and_ranges')
+           'normalize_zero_mean', 'get_means_and_ranges', 'save_xml')
 
 DEFAULT_DATA_FILE_NAME = os.path.join(os.path.dirname(__file__),
             '../../../data/eccv2010_beauty_data/eccv2010_split1.csv')
@@ -43,15 +46,26 @@ def load_images(hotornot_csv_file_name, convert_type='L'):
         reader = csv.reader(hotornot_csv)
         def append_row_to_data(data, row):
             def get_array_from_image(image_name):
+                # old way 
                 image = Image.open(os.path.join(hotornot_dir, image_name))
+                image_file_name = os.path.join(hotornot_dir, image_name)
                 if convert_type == 'L':
-                    image_data = image.convert(convert_type)
+                    return numpy.array([cv2.imread(image_file_name, 
+                                            cv.CV_LOAD_IMAGE_GRAYSCALE).flatten()],
+                                            dtype=theano.config.floatX)
+                    # old way
+                    #image_data = image.convert(convert_type)
+                    #print(image_data)
+                    #print(numpy.asarray(image_data))
+                    
                 elif convert_type ==  'YCvCr':
                     image_data = [numpy.asarray(i).ravel() for i in
                                   image.convert(convert_type).split()]
                 else:
                     raise ValueError('Image convert type %s is not supported'
                                      % (convert_type))
+                #return image_data
+                #old way
                 return numpy.asarray(image_data)
             # append the x_data
 
@@ -138,6 +152,12 @@ def plot_correlation(human_scores, machine_scores, images, title, file_name, sty
     save_plot(file_name)
     if show:
         pyplot.show()
+
+def save_xml(cnn, output_file_path):
+    cnn_xml = Document()
+    cnn.to_xml(cnn_xml, cnn_xml)
+    with open(output_file_path, 'w') as cnn_file:
+        cnn_xml.writexml(cnn_file, indent='  ', addindent='  ', newl='\n')
 
 def save_plot(file_name):
     file_name = append_timestamp_to_file_name(file_name)

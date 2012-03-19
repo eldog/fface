@@ -244,8 +244,73 @@ BOOST_AUTO_TEST_CASE( cvregressionplane_test )
         CHECK_MESSAGE(regressionPlane1->setweight(weights1), 1);
         CHECK_MESSAGE(cvmGet(regressionPlane1->fprop(), 0, 0), 19);
 
+
+                                                
+
     } // for
+
+    // Test different valued weigths etc with one parent.
+    CvSourcePlane* multiValSrcPlane = new CvSourcePlane("m_v_sp", cvSize(2, 2));
+    double multiValSrcPlaneVal[] = {
+                                    1.0, 2.0,
+                                    3.0, 4.0
+                                 };
+    CvMat multiValSrcPlaneValMat = cvMat(2,
+                                         2,
+                                         CV_64FC1,
+                                         multiValSrcPlaneVal);
+    CHECK_MESSAGE(multiValSrcPlane->setfmap(&multiValSrcPlaneValMat), 1);   
     
+    std::vector<CvGenericPlane*> multiValRegPlaneParents;
+    multiValRegPlaneParents.push_back(multiValSrcPlane);
+    
+    double multiValRegPlaneWeightVals[] = {
+                                            2.0,
+                                            6.0, 7.0,
+                                            8.0, 9.0
+                                        };
+    std::vector<double> multiValRegPlaneWeights(multiValRegPlaneWeightVals,
+                                                multiValRegPlaneWeightVals
+                                                +
+                                                sizeof(multiValRegPlaneWeightVals)
+                                                / sizeof(double));
+    CvRegressionPlane* multiValRegPlane = new CvRegressionPlane("m_v_rp",
+                                                                cvSize(2, 2));
+    CHECK_MESSAGE(multiValRegPlane->connto(multiValRegPlaneParents), 1);
+    CHECK_MESSAGE(multiValRegPlane->setweight(multiValRegPlaneWeights), 1);
+    CHECK_MESSAGE(cvmGet(multiValRegPlane->fprop(), 0, 0), 82);
+
+    // test with multiple parents
+    CvSourcePlane* multiValSrcPlane2 = new CvSourcePlane("m_v_sp_2", cvSize(2, 2));
+    double multiValSrcPlaneVal2[] = {
+                                      2.0, 4.0,
+                                      6.0, 8.0
+                                    };
+    CvMat multiValSrcPlaneValMat2 = cvMat(2,
+                                         2,
+                                         CV_64FC1,
+                                         multiValSrcPlaneVal2);
+    CHECK_MESSAGE(multiValSrcPlane2->setfmap(&multiValSrcPlaneValMat2), 1);
+    multiValRegPlaneParents.push_back(multiValSrcPlane2);
+
+    double multiValRegPlaneWeightVals2[] = {
+                                            2.0,
+                                            6.0, 7.0,
+                                            8.0, 9.0,
+                                            11.0, 12.0,
+                                            13.0, 14.0
+                                            };
+    std::vector<double> multiValRegPlaneWeights2(multiValRegPlaneWeightVals2,
+                                                multiValRegPlaneWeightVals2
+                                                +
+                                                sizeof(multiValRegPlaneWeightVals2)
+                                                / sizeof(double));
+    CvRegressionPlane* multiValRegPlane2= new CvRegressionPlane("m_v_rp2",
+                                                                cvSize(2, 2));
+    CHECK_MESSAGE(multiValRegPlane2->connto(multiValRegPlaneParents), 1);
+    CHECK_MESSAGE(multiValRegPlane2->setweight(multiValRegPlaneWeights2), 1);
+    CHECK_MESSAGE(cvmGet(multiValRegPlane2->fprop(), 0, 0), 342);
+
     //CvRegressionPlane regressionPlane 
     //   = new CvRegressionPlane("test_regression_plane",
     //                            cvSize()

@@ -79,17 +79,19 @@ class ConvPoolLayer(object):
                                                    size=filter_shape), 
                                        dtype=theano.config.floatX), 
                          borrow=True)
-        conv_out = T.nnet.conv.conv2d(x_data, 
+        self.conv_out = T.nnet.conv.conv2d(x_data, 
                                      self.W,
                                      filter_shape=filter_shape,
                                      image_shape=image_shape) \
                    + self.b_c.dimshuffle('x', 0, 'x', 'x')
-        sigmoid_conv_out = T.tanh(conv_out + self.b.dimshuffle('x', 0, 'x',
-                                  'x'))
+        sigmoid_conv_out = T.tanh(self.conv_out + self.b.dimshuffle('x', 0, 'x',
+                           'x'))
+        #sigmoid_conv_out = self.conv_out + self.b.dimshuffle('x', 0, 'x',
+        #                          'x')
         pooled_out = T.signal.downsample.max_pool_2d(sigmoid_conv_out, 
                                                      ds=pool_size,
                                                      ignore_border=True)
-        self.output = T.tanh(pooled_out)
+        self.output = pooled_out
         self.params = [self.W, self.b, self.b_c]
 
     def to_xml(self, document, parent):
@@ -113,8 +115,14 @@ class ConvPoolLayer(object):
             # Needs to be updated to refer to id of connecting layer
             connection.setAttribute('to', 'src')
             plane.appendChild(connection)
-            weights_text = ' '.join([str(x).strip(',') for x in
-                                        self.W.get_value()[i].flatten().tolist()])
+            raw_weight = self.W.get_value()[i]
+            print ('raw')
+            print(raw_weight)
+            weights = numpy.rot90(raw_weight[0],2)
+            print('rot90')
+            print(weights)
+            weights_text = ' '.join(map(str,
+                weights.flatten().tolist()))
             connection_text = document.createTextNode(weights_text)
             connection.appendChild(connection_text)
 
@@ -191,9 +199,12 @@ class SingleLayerConvNN(object):
         output_size = calculate_output_size(image_shape, 
                                             filter_shape,
                                             pool_size)
+        output_length = calculate_output_length(image_shape[2],
+                                                filter_shape[2],
+                                                pool_size[0])
         self.regression = TheanoLeastSquaresRegression(self.regression_input.T, 
-                                                    15*15*48,
-                                                    batch_size)
+                                                      output_size * 48,
+                                                      output_length)
         self.l1 = abs(self.layer_0.W).sum() + abs(self.regression.theta).sum()
         self.l2 = (self.layer_0.W ** 2).sum() + (self.regression.theta ** 2).sum()
         self.params = self.layer_0.params + self.regression.params
@@ -251,9 +262,12 @@ class TwoLayerConvNN(object):
         
 
 def calculate_output_size(image_shape, filter_shape, pool_size):
-    return ((image_shape[2] - filter_shape[2] + 1) / pool_size[0]) \
-            *((image_shape[3] - filter_shape[3] + 1) / pool_size[1]) \
-            * filter_shape[0]
+    return (calculate_output_length(image_shape[2], filter_shape[2],pool_size[0])
+           * calculate_output_length(image_shape[3], filter_shape[3],pool_size[1])
+           * filter_shape[1])
+
+def calculate_output_length(image_length, filter_length, pool_length):
+    return (image_length - filter_length + 1) / pool_length
 
 def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1, 
               reg_lambda_2=REG_LAMBDA_2, learning_rate=LEARNING_RATE,
@@ -428,11 +442,10 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
         predictions += next_predictions[0].tolist()
         sum_errors += error
 
+    # save cnn as xml
+    save_xml(cnn, 'cnn.xml')
+
     # Print the results
-    cnn_xml = Document()
-    cnn.to_xml(cnn_xml, cnn_xml)
-    with open('cnn.xml', 'w') as cnn_file:
-        cnn_xml.writexml(cnn_file, indent='  ', addindent='  ', newl='\n')
     logging.info('mean test error: %f' % (sum_errors / n_testing_batches))
     logging.debug('predictions %s', str(predictions))
     pearsons = pearsonr(real_scores, predictions)
@@ -455,6 +468,9 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
     #          % (pearsons[0], batch_size))
     #print('means', means)
     #print('ranges', ranges)
+
+    # ONE LAST THING
+
     return pearsons[0]
 
 def build_argument_parser():

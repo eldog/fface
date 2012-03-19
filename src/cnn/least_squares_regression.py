@@ -8,7 +8,7 @@ from theano import tensor as T
 
 class TheanoLeastSquaresRegression(object):
     """Calculates the least-squares error of input data to target data"""
-    def __init__(self, x_data, n_features, m, reg_lambda=0.1, theta=None, bias=None):
+    def __init__(self, x_data, n_features, n_input_feature_maps, reg_lambda=0.1, theta=None, bias=None):
         """
         Create the weights and prediction function.
         
@@ -33,7 +33,7 @@ class TheanoLeastSquaresRegression(object):
         self.bias = bias
         self.y_pred = T.dot(self.theta.T, x_data) + self.bias
         self.n_features = n_features
-        self.m = m
+        self.n_input_feature_maps = n_input_feature_maps
         self.reg_lambda = reg_lambda
         self.params = [self.theta, self.bias]
 
@@ -48,10 +48,11 @@ class TheanoLeastSquaresRegression(object):
         return (numpy.divide(numpy.subtract(y, self.y_pred), y))
 
     def to_xml(self, document, parent):
+        size = int(self.n_input_feature_maps)
         plane = document.createElement('plane')
         plane.setAttribute('id', 'output')
         plane.setAttribute('type', 'regression')
-        plane.setAttribute('neuronsize', '15x15')
+        plane.setAttribute('neuronsize', '%dx%d' % (size, size))
         parent.appendChild(plane)
 
         bias = document.createElement('bias')
@@ -64,13 +65,12 @@ class TheanoLeastSquaresRegression(object):
         def chunk(l, step):
             return [l[i:i+step] for i in xrange(0, len(l), step)]
 
-        chunks = chunk(self.theta.get_value().flatten().tolist(), 15 * 15)
+        chunks = chunk(self.theta.get_value().flatten().tolist(), size * size)
         for i, value  in enumerate(chunks):
             connection = document.createElement('connection')
             connection.setAttribute('to', 'sub%d' % (i,))
             plane.appendChild(connection)
-            weights_text = ''.join([x.strip(',') for x in
-                str(chunks).strip('[]')])
+            weights_text = ' '.join(map(str, value))
             connection_text = document.createTextNode(weights_text)
             connection.appendChild(connection_text)
 

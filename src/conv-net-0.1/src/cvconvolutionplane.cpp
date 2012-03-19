@@ -79,42 +79,43 @@ CvConvolutionPlane::~CvConvolutionPlane ( )
  */
 CvMat * CvConvolutionPlane::fprop ()
 {
-	assert( m_connected );
+    assert( m_connected );
 
-	for (int y=0; y<m_fmapsz.height; y++)
-	{
-		for (int x=0; x<m_fmapsz.width; x++)
-		{
-	
-			double sum = m_weight[0]; // bias
-			int w = 0;
-			for (int i = 0; i < m_pplane.size(); i++)
-			{
-				CvMat *fmap = m_pfmap[i];
-				assert( cvGetSize(fmap).height >= y+m_neurosz.height
-					&& cvGetSize(fmap).width >= x+m_neurosz.width );
-				
-				for (int j=0; j<m_neurosz.height; j++)
-				{
-					for (int k=0; k<m_neurosz.width; k++)
-					{
-						sum += m_weight[++w]*cvmGet(fmap, y+j, x+k); 
-					}
-				}
-			}
+    for (int y=0; y<m_fmapsz.height; y++)
+    {
+        for (int x=0; x<m_fmapsz.width; x++)
+        {
 
-			// "Fast Sigmoid Approximation" trick
-			double val = DQstdsigmoid(sum);
+            double sum = m_weight[0]; // bias
+            int w = 0;
+            for (int i = 0; i < m_pplane.size(); i++)
+            {
+                CvMat *fmap = m_pfmap[i];
+                assert( cvGetSize(fmap).height >= y+m_neurosz.height
+                        && cvGetSize(fmap).width >= x+m_neurosz.width );
+                for (int j=0; j<m_neurosz.height; j++)
+                {
+                    for (int k=0; k<m_neurosz.width; k++)
+                    {
+                        sum += m_weight[++w]*cvmGet(fmap, y+j, x+k);
+                    } 
+                }
+            }
+
+            // "Fast Sigmoid Approximation" trick
+            //double val = DQstdsigmoid(sum);
 
 // 			// Slow sigmoid, but precise.
-//   			double val = 1.71593428*tanh(0.66666666*sum);
+            //double val = 1.71593428*tanh(0.66666666*sum);
+            double val = tanh(sum);
+            //double val = sum;
+            // Update the value at feature map
+            //cout << val << endl;
+            cvmSet(m_fmap,y,x,val);
+        }
+    }
 
-			// Update the value at feature map
-			cvmSet(m_fmap,y,x,val);
-		}
-	}
-
-	return m_fmap;
+    return m_fmap;
 }
 
 
