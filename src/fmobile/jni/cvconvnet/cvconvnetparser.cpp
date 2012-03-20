@@ -226,6 +226,7 @@ static void XMLCALL icvXML_StartElementHandler (void *userData, const XML_Char *
                         data.plane.push_back(
                                 new CvMaxOperatorPlane(planeid,cvSize(fmapszx,fmapszy),cvSize(neuroszx,neuroszy))
                         );
+			data.idmap[planeid] = curplaneid;
 		} else if (planetype=="rbf")
 		{
 			data.plane.push_back(
@@ -243,6 +244,7 @@ static void XMLCALL icvXML_StartElementHandler (void *userData, const XML_Char *
                         data.plane.push_back(
                                 new CvRegressionPlane(planeid,cvSize(neuroszx,neuroszy))
                         );
+			data.idmap[planeid] = curplaneid;
                 } else
 		{
 			CHK_POSSIBLE_FAIL(1, "plane "+planeid+" has no type or unidentified type");			

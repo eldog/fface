@@ -1,4 +1,7 @@
+#include <sstream>
+
 #include "cnn.h"
+#include <log.h>
 
 Cnn::Cnn()
 {
@@ -62,6 +65,11 @@ double Cnn::runConvNet(cv::Mat const frame)
     cv::Mat greyInputImage;
     cv::cvtColor(frame, greyInputImage, CV_BGR2GRAY);
     IplImage image = greyInputImage;
+    //CvMat *cvmat = cvCreateMat(image.height, image.width, CV_64FC1);
+    //cvConvert(&image, cvmat);
+    //std::ostringstream val;
+    //val << cvmGet(cvmat, 64, 64);
+    //LOGI("FFace Native", val.str().c_str());
     return mConvNet.fprop(&image);
 } // Cnn::runConvNet
 

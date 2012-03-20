@@ -7,5 +7,5 @@ set -o nounset
 ant clean
 ant uninstall
 ant debug install
-adb shell am start -n uk.me.eldog.fface/.FaceCaptureActivity
-logdog
+~/android-sdk-linux/platform-tools/adb shell am start -n uk.me.eldog.fface/.FaceCaptureActivity
+~/android-sdk-linux/tools/logdog

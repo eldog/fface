@@ -422,7 +422,7 @@ public class FaceCaptureActivity extends Activity
             TextView scoreText = new TextView(FaceCaptureActivity.this);
             scoreText.setText(String.format("%s %.3f", 
                                             FaceCaptureActivity.this.getString(R.string.attractiveness_score),
-                                            score));
+                                            (score * 3) + 3 ));
             scoreText.setLayoutParams(new LinearLayout.LayoutParams(
                                                 LayoutParams.FILL_PARENT,
                                                 LayoutParams.WRAP_CONTENT));

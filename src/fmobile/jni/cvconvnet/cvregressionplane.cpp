@@ -56,12 +56,15 @@ using namespace std;
  * \param neurosz size of "neuron window" (for instance 5x5 means that
  * we have a neuron that is connected to 25 outputs of his 
  * parent(s) neuron feature map)
+ *
+ * The output is only ever going to be scalar
+ *
  */
 CvRegressionPlane::CvRegressionPlane  (std::string id, CvSize neurosz)
 	: CvGenericPlane(id, cvSize(1, 1), neurosz) 
 {
  	// Init weights for the neuron of regression plane
- 	m_weight.resize( neurosz.height*neurosz.width*48+1 );
+ 	m_weight.resize(neurosz.height * neurosz.width + 1);
 }
 
 CvRegressionPlane::~CvRegressionPlane ( ) 
@@ -77,7 +80,7 @@ CvRegressionPlane::~CvRegressionPlane ( )
  * Each neuron knows his parents, thus there are no input parameters.
  * \return Pointer to plane's featuremap
  */
-CvMat * CvRegressionPlane::fprop()
+CvMat* CvRegressionPlane::fprop()
 {
     assert( m_connected );
     // Start with the bias
@@ -86,15 +89,14 @@ CvMat * CvRegressionPlane::fprop()
     for (int pfmap_index = 0; pfmap_index < m_pplane.size(); pfmap_index++)
     {
         CvMat *fmap = m_pfmap[pfmap_index];
-        for (int row = 0; row < m_fmapsz.height; row++)
+        for (int row = 0; row < m_neurosz.height; row++)
         {
-            for (int col = 0; col < m_fmapsz.width; col++)
+            for (int col = 0; col < m_neurosz.width; col++)
             {
                sum += m_weight[++w_index] * cvmGet(fmap, row, col);
             } // for col
         } // for row
     } // for pfmap_index
-
     cvmSet(m_fmap, 0, 0, sum);
     return m_fmap;
 } // CvRegressionPlane::fprop()

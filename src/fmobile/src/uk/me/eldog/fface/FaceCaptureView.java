@@ -125,7 +125,7 @@ class FaceCaptureView extends FaceCaptureViewBase
 
     static
     {
-        System.loadLibrary("FaceCaptureView");
+        System.loadLibrary("FaceCapture");
     }
 } // class FaceCaptureView
 
