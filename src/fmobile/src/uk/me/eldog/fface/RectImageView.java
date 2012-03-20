@@ -32,7 +32,7 @@ public class RectImageView extends ImageView
     {
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(Color.GREEN);
-        mPaint.setStrokeWidth(1.0f);
+        mPaint.setStrokeWidth(3.0f);
     }
 
     interface RectTouchListener

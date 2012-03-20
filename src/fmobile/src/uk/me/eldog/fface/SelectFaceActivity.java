@@ -52,7 +52,9 @@ public class SelectFaceActivity extends Activity
 
     private final static int DIALOG_FINDING_FACES_ID = 0;
     private final static int DIALOG_CROPPING_FACE_ID = 1;
-    
+   
+    private Uri mImageUri = null;
+
     private Map<Integer, FaceRect> mFaceMap = new HashMap<Integer, FaceRect>();
     private Bitmap mBitmap = null;
     private final static int MAX_FACES = 5;
@@ -62,14 +64,14 @@ public class SelectFaceActivity extends Activity
     private class InsertImageIntoMediaStore 
             extends AsyncTask<Pair<ContentResolver, Uri>, 
                               Void, 
-                              Pair<Bitmap, Map<Integer, FaceRect>>>
+                              Object[]>
     {
         protected void onPreExecute()
         {
             showDialog(DIALOG_FINDING_FACES_ID);
         } // onPreExecute
 
-        protected Pair<Bitmap, Map<Integer, FaceRect>> 
+        protected Object[]
             doInBackground(Pair<ContentResolver, Uri>... param)
         {
             ContentResolver cr = param[0].first;
@@ -110,20 +112,13 @@ public class SelectFaceActivity extends Activity
                       null /* where */,
                       null /* selectionArgs */);
 
-            Bitmap imageBitmap;
-            try
+            Bitmap imageBitmap = Util.getImageBitmap(cr, imageUri);
+            if (imageBitmap == null)
             {
-                imageBitmap = Images.Media.getBitmap(cr, imageUri);
-            } // try
-            catch (IOException e)
-            {
-                Log.e(TAG, "Could not open bitmap file");
+                Log.e(TAG, "Unable to open face bitmap for viewing");
                 return null;
-            } // catch
-            imageBitmap = Bitmap.createScaledBitmap(imageBitmap, 
-                                                    imageBitmap.getWidth() / 4,
-                                                    imageBitmap.getHeight() / 4,
-                                                    true);
+            } // if
+
             FaceDetector faceDetector = new FaceDetector(imageBitmap.getWidth(),
                                                          imageBitmap.getHeight(),
                                                          MAX_FACES);
@@ -138,7 +133,7 @@ public class SelectFaceActivity extends Activity
 
             Log.i(TAG, "Found " + numberFacesFound  + " faces");
 
-            return new Pair<Bitmap, Map<Integer, FaceRect>>(imageBitmap, faceMap);
+            return new Object[] {imageBitmap, faceMap, imageUri};
         } // onPreExecute
 
         protected void onProgressUpdate(Void... params)
@@ -146,7 +141,7 @@ public class SelectFaceActivity extends Activity
         } // onProgressUpdate
 
         protected void 
-            onPostExecute(Pair<Bitmap, Map<Integer, FaceRect>> result)
+            onPostExecute(Object... result)
         {
             if (result != null)
             {
@@ -158,8 +153,9 @@ public class SelectFaceActivity extends Activity
             } // else
             removeDialog(DIALOG_FINDING_FACES_ID);
 
-            mBitmap= result.first;
-            mFaceMap = result.second;
+            mBitmap= (Bitmap) result[0];
+            mFaceMap = (Map) result[1];
+            mImageUri = (Uri) result[2];
             
             mFaceRectImageView.setImageBitmap(mBitmap);
             
