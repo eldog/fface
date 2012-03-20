@@ -203,7 +203,8 @@ class SingleLayerConvNN(object):
                                                 filter_shape[2],
                                                 pool_size[0])
         self.regression = TheanoLeastSquaresRegression(self.regression_input.T, 
-                                                      output_size * 48,
+                                                      output_size *
+                                                      filter_shape[0],
                                                       output_length)
         self.l1 = abs(self.layer_0.W).sum() + abs(self.regression.theta).sum()
         self.l2 = (self.layer_0.W ** 2).sum() + (self.regression.theta ** 2).sum()
@@ -288,6 +289,7 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
     #err
 
     #means, ranges = get_means_and_ranges(train_data[0])
+    logger.info('max %d, min %d', train_data[0].max(), train_data[0].min())
     #train_data[0] = normalize_zero_mean(train_data[0], means, ranges)
     #test_data[0] = normalize_zero_mean(test_data[0], means, ranges)
     #if do_validation:

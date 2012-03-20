@@ -40,6 +40,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 
 import uk.me.eldog.fface.R;
@@ -163,7 +164,7 @@ public class FaceCaptureActivity extends Activity
             // Dismiss the dialog
             removeDialog(DIALOG_ENSURE_DATA_FILES_EXIST_ID);
             //setContentView(new FaceCaptureView(FaceCaptureActivity.this));
-            new EnsureExternalDirectory().execute();
+            //new EnsureExternalDirectory().execute();
         } // onPostExecute
 
     } // class EnsureDataFilesExistTask
@@ -420,9 +421,9 @@ public class FaceCaptureActivity extends Activity
                                                 LayoutParams.WRAP_CONTENT));
             ll.addView(img);
             TextView scoreText = new TextView(FaceCaptureActivity.this);
-            scoreText.setText(String.format("%s %.3f", 
+            scoreText.setText(String.format("%s %.1f", 
                                             FaceCaptureActivity.this.getString(R.string.attractiveness_score),
-                                            (score * 3) + 3 ));
+                                            (score + 3) * (10/6.0) ));
             scoreText.setLayoutParams(new LinearLayout.LayoutParams(
                                                 LayoutParams.FILL_PARENT,
                                                 LayoutParams.WRAP_CONTENT));
@@ -479,11 +480,25 @@ public class FaceCaptureActivity extends Activity
         return result + ".jpg";
     } // getImageFileName
 
+    private Button mCaptureFaceButton;
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.face_capture_activity);
+        mCaptureFaceButton = (Button) findViewById(R.id.capture_face_button);
+        // TODO: Check that having these two not explicitly depend on each other
+        // messes up the concurrency
+        mCaptureFaceButton.setOnClickListener(
+            new OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    new EnsureExternalDirectory().execute();
+                } // onClick
+            });
         new EnsureDataFilesExistTask().execute(new File("/sd"));
     } // onCreate
 
