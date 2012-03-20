@@ -179,8 +179,15 @@ public class SelectFaceActivity extends Activity
                         } // if
                         else if (event.getAction() == MotionEvent.ACTION_UP)
                         {
-                            new CropAndScaleBitmapAndLaunchViewFaceActivity().
-                                execute(new Pair<Bitmap, RectF>(mBitmap, face));
+                            Intent viewScoreIntent 
+                                    = new Intent(SelectFaceActivity.this,
+                                                 ViewScoreActivity.class);
+                            viewScoreIntent.putExtra(
+                                ViewScoreActivity.BUNDLE_EXTRA_BITMAP, mImageUri);
+                            viewScoreIntent.putExtra(
+                                ViewScoreActivity.BUNDLE_EXTRA_FACE, face);
+                            SelectFaceActivity.this.startActivity(viewScoreIntent);
+
                             return true;
                         }
                         else
@@ -192,48 +199,6 @@ public class SelectFaceActivity extends Activity
 
         } // onPostExecute
     } // class
-    
-    private class CropAndScaleBitmapAndLaunchViewFaceActivity
-            extends AsyncTask<Pair<Bitmap, RectF>, Void, Bitmap>
-    {
-        protected void onPreExecute()
-        {
-            showDialog(DIALOG_CROPPING_FACE_ID);
-        } // onPreExecute
-        
-        protected Bitmap 
-            doInBackground(Pair<Bitmap, RectF>... params)
-        {
-            Bitmap bitmap = params[0].first;
-            RectF faceRect = params[0].second;
-            Log.d(TAG, "CReating cropped bitmap");
-            Bitmap faceBitmap = Bitmap.createBitmap(bitmap, 
-                                                    (int)faceRect.left,
-                                                    (int)faceRect.top,
-                                                    (int) (faceRect.right 
-                                                           - faceRect.left),
-                                                    (int) (faceRect.bottom 
-                                                           - faceRect.top));
-            Log.d(TAG, "Scaling bitmap");
-            Bitmap scaledBitmap = Bitmap.createScaledBitmap(faceBitmap, 
-                                                            128, 
-                                                            128, 
-                                                            true);
-            Log.d(TAG, "done scaling");
-            return scaledBitmap;
-        }
-
-        protected void onPostExecute(Bitmap result)
-        {
-            removeDialog(DIALOG_CROPPING_FACE_ID);
-            Intent viewScoreIntent 
-                        = new Intent(SelectFaceActivity.this,
-                                     ViewScoreActivity.class);
-            viewScoreIntent.putExtra(
-                            ViewScoreActivity.BUNDLE_EXTRA_BITMAP, result);
-            SelectFaceActivity.this.startActivity(viewScoreIntent);
-        } // onPostExecute
-    } // CropAndScaleBitmapAndLaunchViewFaceActivity
 
     public void onCreate(Bundle savedInstanceState)
     {

@@ -37,7 +37,7 @@ public final class Util
         } // try
         catch (IOException e)
         {
-            Log.e(TAG, "Could not open bitmap file");
+            Log.e(TAG, "Could not open bitmap file", e);
             return null;
         } // catch
         return Bitmap.createScaledBitmap(imageBitmap, 

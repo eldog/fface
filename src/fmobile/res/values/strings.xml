@@ -8,5 +8,5 @@
     <string name="finding_faces">Finding faces</string>
     <string name="cropping_face">Cropping face</string>
     <string name="analyzing_attractiveness">Analysing attractiveness</string>
-    <string name="attractiveness_score">Attractiveness score: </string>
+    <string name="attractiveness_score">Attractiveness score</string>
 </resources>

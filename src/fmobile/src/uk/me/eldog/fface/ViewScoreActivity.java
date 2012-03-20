@@ -69,16 +69,35 @@ public class ViewScoreActivity extends Activity
     private TextView mScoreTextView;
 
     private class CropAndScaleBitmap 
-            extends AsyncTask<Pair<Bitmap, RectF>, Void, Pair<Bitmap, Double>>
+            extends AsyncTask<Object[], Void, Object[]>
     {
         protected void onPreExecute()
         {
             showDialog(DIALOG_ANALYSING_ATTRACTIVENESS_ID);
         } // onPreExecute
 
-        protected Pair<Bitmap, Double> doInBackground(Pair<Bitmap, RectF>... params)
-        {
-            Bitmap scaledBitmap = params[0].first;
+        protected Object[] doInBackground(Object[]... params)
+        {   
+            ContentResolver cr = (ContentResolver) params[0][2];
+            Bitmap bitmap = Util.getImageBitmap(cr, (Uri) params[0][0]);
+            if (bitmap == null)
+            {
+                Log.e(TAG, "Unable to load bitmap!");
+                return null;
+            } // if
+            RectF faceRect = (RectF) params[0][1];
+            Log.d(TAG, "CReating cropped bitmap");
+            Bitmap faceBitmap = Bitmap.createBitmap(bitmap, 
+                                                    (int)faceRect.left,
+                                                    (int)faceRect.top,
+                                                    (int) (faceRect.right 
+                                                           - faceRect.left),
+                                                    (int) (faceRect.bottom 
+                                                           - faceRect.top));
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(faceBitmap, 
+                                                            128, 
+                                                            128, 
+                                                            true);
             Log.d(TAG, "Calculating attractiveness");
             int[] pixels = new int[128 * 128];
             scaledBitmap.getPixels(pixels, 0, 128, 0, 0, 128, 128);
@@ -161,17 +180,15 @@ public class ViewScoreActivity extends Activity
             {
                 Log.e(TAG, "Could not access external storage - unable to score!");
             } // else
-            return new Pair<Bitmap, Double>(scaledBitmap, score);
+            return new Object[]{faceBitmap, score};
         } // doInBackground
 
-        protected void onPostExecute(Pair<Bitmap, Double> result)
+        protected void onPostExecute(Object[] result)
         {
-            Bitmap bitmap = result.first;
-            double score = result.second;
+            Bitmap bitmap = (Bitmap) result[0];
+            double score = (Double) result[1];
             mFaceImageView.setImageBitmap(bitmap);
-            mScoreTextView.setText(String.format("%s %.1f", 
-                                   ViewScoreActivity.this.getString(
-                                                    R.string.attractiveness_score),
+            mScoreTextView.setText(String.format("%.1f", 
                                             (score + 3) * (10/6.0) ));
             removeDialog(DIALOG_ANALYSING_ATTRACTIVENESS_ID);
             Log.d(TAG, "Post exectutsed");
@@ -189,9 +206,11 @@ public class ViewScoreActivity extends Activity
         Bundle extras = getIntent().getExtras();
         if (extras != null)
         {
-            Bitmap bitmap = (Bitmap) extras.get(BUNDLE_EXTRA_BITMAP);
+            Uri imageUri = (Uri) extras.get(BUNDLE_EXTRA_BITMAP);
             RectF face = (RectF) extras.get(BUNDLE_EXTRA_FACE);
-            new CropAndScaleBitmap().execute(new Pair<Bitmap, RectF>(bitmap, face));
+            new CropAndScaleBitmap().execute(new Object[] {imageUri,
+                                                           face,
+                                                           getContentResolver()});
         } // if
     } // onCreate
     
