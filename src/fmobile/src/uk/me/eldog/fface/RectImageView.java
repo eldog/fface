@@ -25,13 +25,14 @@ public class RectImageView extends ImageView
     private int mBitmapWidth = -1;
     private int mBitmapHeight = -1;
     private Map<Integer, RectF> mRectFMap = new HashMap<Integer, RectF>();
+    private Map<Integer, RectF> mDrawRectFMap = new HashMap<Integer, RectF>();
     private List<RectTouchListener> mRectTouchList 
                                      = new ArrayList<RectTouchListener>();
     private Paint mPaint = new Paint();
     {
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(Color.GREEN);
-        mPaint.setStrokeWidth(0.5f);
+        mPaint.setStrokeWidth(1.0f);
     }
 
     interface RectTouchListener
@@ -58,6 +59,8 @@ public class RectImageView extends ImageView
     {
         mBitmapWidth = bitmap.getWidth();
         mBitmapHeight = bitmap.getHeight();
+        Log.d(TAG, "Setting image bitmap! width: " +  mBitmapWidth
+                   + " height: " + mBitmapHeight);
         super.setImageBitmap(bitmap);
     } // setBitmap
 
@@ -100,7 +103,9 @@ public class RectImageView extends ImageView
     protected void onDraw(Canvas canvas)
     {
         super.onDraw(canvas);
-        
+       
+        Log.d(TAG, "OnDraw width: " + mBitmapWidth
+                   + " height: " + mBitmapHeight);
         // Check if we haven't set our bitmap yet
         if (mBitmapHeight == -1 || mBitmapWidth == -1)
         {
@@ -109,6 +114,8 @@ public class RectImageView extends ImageView
 
         int height = canvas.getHeight();
         int width = canvas.getWidth();
+
+        Log.d(TAG, "Canvas width: " + height + " height: " + width);
         
         float xRatio = width / (float) mBitmapWidth;
         float yRatio = height / (float) mBitmapHeight;
@@ -118,13 +125,14 @@ public class RectImageView extends ImageView
         {
             int id = entry.getKey();
             RectF rect = entry.getValue();
-            mRectFMap.put(id, new RectF(rect.left * xRatio,
+            Log.d(TAG, "rect" + rect.left + rect.top + rect.right + rect.bottom);
+            mDrawRectFMap.put(id, new RectF(rect.left * xRatio,
                                         rect.top * yRatio,
                                         rect.right * xRatio,
                                         rect.bottom * yRatio));
         } // for
 
-        for (RectF rect : mRectFMap.values())
+        for (RectF rect : mDrawRectFMap.values())
         {
             canvas.drawRect(rect, mPaint);
         } // for
@@ -132,7 +140,7 @@ public class RectImageView extends ImageView
 
     public boolean onTouchEvent (MotionEvent event)
     {
-        for (Entry<Integer, RectF> entry : mRectFMap.entrySet())
+        for (Entry<Integer, RectF> entry : mDrawRectFMap.entrySet())
         {
             int id = entry.getKey();
             RectF rect = entry.getValue();

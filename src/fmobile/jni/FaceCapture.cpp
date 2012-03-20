@@ -1,9 +1,9 @@
 #include <new>
 
-#include "uk_me_eldog_fface_FaceCaptureActivity.h"
+#include "uk_me_eldog_fface_ViewScoreActivity.h"
 #include "cnn.h"
 
-JNIEXPORT jdouble JNICALL Java_uk_me_eldog_fface_FaceCaptureActivity_runConv
+JNIEXPORT jdouble JNICALL Java_uk_me_eldog_fface_ViewScoreActivity_runConv
   (JNIEnv* env, jclass cls, jstring cnnFileName, jintArray bitmapData)
 {
     const char *cnnFile;
