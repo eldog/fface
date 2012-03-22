@@ -8,6 +8,7 @@ from argparse import ArgumentParser
 from xml.dom.minidom import Document
 import gc
 import logging
+import random
 import sys
 import time
 
@@ -18,6 +19,7 @@ import theano.tensor as T
 from theano.sandbox.cuda.basic_ops import gpu_from_host
 from least_squares_regression import TheanoLeastSquaresRegression
 from neural_net_eig_faces import HiddenLayer
+import utils
 from utils import *
 
 VERSION = 'v0.0'
@@ -270,9 +272,16 @@ def calculate_output_size(image_shape, filter_shape, pool_size):
 def calculate_output_length(image_length, filter_length, pool_length):
     return (image_length - filter_length + 1) / pool_length
 
-def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1, 
-              reg_lambda_2=REG_LAMBDA_2, learning_rate=LEARNING_RATE,
-              n_epochs=N_EPOCHS, n_hidden_units=N_HIDDEN_UNITS, display=True):
+def train_cnn(data_file_name, 
+              batch_size=BATCH_SIZE, 
+              reg_lambda_1=REG_LAMBDA_1, 
+              reg_lambda_2=REG_LAMBDA_2, 
+              learning_rate=LEARNING_RATE,
+              n_epochs=N_EPOCHS, 
+              n_hidden_units=N_HIDDEN_UNITS,
+              convert_type=utils.CONVERT_TYPE_L,
+              normalise=True,
+              display=True):
     train_data, validation_data, test_data, test_data_file_names = load_images(data_file_name)
     do_validation = validation_data == []
     # get our data to fit our batch size
@@ -288,12 +297,17 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
     n_testing_examples = test_data[0].shape[0]
     #err
 
-    #means, ranges = get_means_and_ranges(train_data[0])
-    logger.info('max %d, min %d', train_data[0].max(), train_data[0].min())
-    #train_data[0] = normalize_zero_mean(train_data[0], means, ranges)
-    #test_data[0] = normalize_zero_mean(test_data[0], means, ranges)
-    #if do_validation:
-    #    validation_data[0] = normalize_zero_mean(validation_data[0], means, ranges)
+    if normalise:
+        means, ranges = get_means_and_ranges(train_data[0])
+        logging.info('mean %s %s', means, ranges)
+        train_data[0] = normalize_zero_mean(train_data[0], means, ranges)
+        print(train_data[0][-1])
+        print(train_data[1][-1])
+        test_data[0] = normalize_zero_mean(test_data[0], means, ranges)
+        if do_validation:
+            validation_data[0] = normalize_zero_mean(validation_data[0], 
+                                                     means, 
+                                                     ranges)
 
     real_scores = test_data[1].T.tolist()
     if do_validation:
@@ -322,8 +336,8 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
     cnn = SingleLayerConvNN(rng, 
                             x, 
                             batch_size, 
-                            image_shape=(batch_size, 1, 128, 128),
-                            filter_shape=(48, 1, 9, 9),
+                            image_shape=(batch_size, n_channels, 128, 128),
+                            filter_shape=(48, n_channels, 9, 9),
                             pool_size=(8,8))
 
     cost = cnn.regression.cost(y) + reg_lambda_2 * cnn.l2
@@ -386,7 +400,9 @@ def train_cnn(data_file_name, batch_size=BATCH_SIZE, reg_lambda_1=REG_LAMBDA_1,
     while (epochs < n_epochs) and (not done_looping):
         old_cost = current_cost
         sum_cost = 0
-        for batch_index in xrange(n_training_batches):
+        batch_order = range(n_training_batches)
+        random.shuffle(batch_order)
+        for batch_index in batch_order:
             iteration = epochs * batch_size * n_training_batches + batch_index
             _cost = numpy.asarray(train_model(batch_index))
             costs_train.append((iteration, _cost))
@@ -498,7 +514,14 @@ def build_argument_parser():
     argument_parser.add_argument('--n-hidden-units',
                                  type=int,
                                  default=N_HIDDEN_UNITS)
+    argument_parser.add_argument('--convert-type',
+                                 type=str,
+                                 choices=utils.CONVERT_TYPES,
+                                 default=utils.CONVERT_TYPE_L)
     argument_parser.add_argument('--log-level', default='INFO')
+    argument_parser.add_argument('--no-normalise', 
+                                 action='store_false',
+                                 default=True)
     argument_parser.add_argument('--display', action='store_true')
     return argument_parser
 
@@ -514,13 +537,16 @@ def main(argv=None):
                         level=numeric_level)
     pearsons = []
     for data_file_name in args.data_file_name:
-        pearsons.append(train_cnn(data_file_name,
+        pearsons.append(
+                train_cnn(data_file_name,
                   batch_size=args.batch_size,
                   learning_rate=args.learning_rate,
                   reg_lambda_1=args.reg_lambda_1,
                   reg_lambda_2=args.reg_lambda_2,
                   n_epochs=args.n_epochs,
                   n_hidden_units=args.n_hidden_units,
+                  convert_type=args.convert_type,
+                  normalise=args.no_normalise,
                   display=args.display))
     pearsons = numpy.asarray(pearsons)
     print('mean pearsons %f' % pearsons.mean())

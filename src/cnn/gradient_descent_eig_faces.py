@@ -40,7 +40,7 @@ def prepend_ones(data):
 
 def eigface_sgd(data_file_name, n_eigs=100, learning_rate=0.000000000000000001, 
                 reg_lambda=0.1, display=False):
-    train_data, test_data = load_images(data_file_name)
+    train_data, test_data, image_names = old_load_images(data_file_name)
     eig_face = EigenFace.from_file(train_data[0], data_file_name, n_eigs)
     train_data[0] = eig_face.project_to_face_space(train_data[0])
     test_data[0] = eig_face.project_to_face_space(test_data[0])
@@ -103,8 +103,10 @@ def eigface_sgd(data_file_name, n_eigs=100, learning_rate=0.000000000000000001,
     theta_file_name = '%s.pickle' % append_timestamp_to_file_name('weights')
     logging.info('writing weights to %s' % theta_file_name)
     save_pickle((theta, bias), theta_file_name)
-    plot(x_test.get_value(), theta, bias, y_test.get_value(),
-                     data_file_name, display=display)
+    y = y_test.get_value().tolist()
+    y = map(float, y)
+    plot_correlation(x_test.get_value(), y, image_names,
+    'linear regression', 'linear-regression')
 
 def build_argument_parser():
     argument_parser = ArgumentParser()

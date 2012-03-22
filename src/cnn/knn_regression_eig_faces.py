@@ -17,7 +17,7 @@ from utils import *
 
 def knn_regression(data_file_name, k_value=3, n_eigs=100, weighted=True, 
                    beta=1000000):
-    train_data, test_data = load_images(data_file_name)
+    train_data, test_data, file_names = old_load_images(data_file_name)
     eig_face = EigenFace.from_file(train_data[0], data_file_name, n_eigs)
     train_data[0] = get_face_space(data_file_name, 'train_x', train_data[0],
                                    eig_face)
@@ -56,7 +56,7 @@ def knn_regression(data_file_name, k_value=3, n_eigs=100, weighted=True,
         error = abs(test_score - prediction)
         errors.append(error)
     logging.info('mean error is %f' % (sum(errors) / len(errors)))
-    return real_scores, predictions
+    return real_scores, predictions, file_names
 
 def build_argument_parser():
     argument_parser = argparse.ArgumentParser()
@@ -81,7 +81,7 @@ def main(argv=None):
     logging.basicConfig(format='%(levelname)s: %(asctime)s: %(message)s',
                         level=numeric_level)
     for data_file in args.data_file_name:
-        real_scores, predictions = knn_regression(data_file, 
+        real_scores, predictions, file_names = knn_regression(data_file, 
                                         k_value=args.k_value, 
                                         n_eigs=args.n_eigs,
                                         beta=args.beta,
@@ -93,8 +93,8 @@ def main(argv=None):
                                               args.k_value, args.beta, 
                                               args.n_eigs, pearsons[0])
         file_name = 'KNN-k%d-b%d-e%d' % (args.k_value, args.beta, args.n_eigs)
-        plot_correlation(real_scores, predictions, title, file_name, style='bo',
-                         show=args.show_plot)
+        plot_correlation(real_scores, predictions, file_names, title, file_name, style='bo',
+                         show=args.show_plot, pearsons=pearsons)
 
 if __name__ == '__main__':
     exit(main())

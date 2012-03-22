@@ -19,16 +19,21 @@ import theano
 __all__ = ('DEFAULT_DATA_FILE_NAME', 'get_face_space', 'load_images',
            'plot_correlation', 'save_pickle', 'get_pickle', 'to_theano_shared',
            'append_timestamp_to_file_name', 'trim_to_batch_size', 'plot_cost',
-           'normalize_zero_mean', 'get_means_and_ranges', 'save_xml')
+           'normalize_zero_mean', 'get_means_and_ranges', 'save_xml',
+           'old_load_images')
 
 DEFAULT_DATA_FILE_NAME = os.path.join(os.path.dirname(__file__),
             '../../../data/eccv2010_beauty_data/eccv2010_split1.csv')
+
+CONVERT_TYPE_L = 'L'
+CONVERT_TYPE_YCVCR = 'YCvCr'
+CONVERT_TYPES = [CONVERT_TYPE_L, CONVERT_TYPE_YCVCR]
 
 image_dir = os.path.join(os.path.dirname(__file__),
                          '../../../img/')
 hotornot_dir = os.path.join(os.path.dirname(__file__),
             '../../../data/eccv2010_beauty_data/hotornot_face')
-def load_images(hotornot_csv_file_name, convert_type='L'):
+def load_images(hotornot_csv_file_name, convert_type='L', validation=True):
     """
     Loads the data from csv file and assumes the images are in an immediate 
     sub-directory if the csv file.
@@ -49,7 +54,7 @@ def load_images(hotornot_csv_file_name, convert_type='L'):
                 # old way 
                 image = Image.open(os.path.join(hotornot_dir, image_name))
                 image_file_name = os.path.join(hotornot_dir, image_name)
-                if convert_type == 'L':
+                if convert_type == CONVERT_TYPE_L:
                     return numpy.array([cv2.imread(image_file_name, 
                                             cv.CV_LOAD_IMAGE_GRAYSCALE).flatten()],
                                             dtype=theano.config.floatX)
@@ -58,7 +63,7 @@ def load_images(hotornot_csv_file_name, convert_type='L'):
                     #print(image_data)
                     #print(numpy.asarray(image_data))
                     
-                elif convert_type ==  'YCvCr':
+                elif convert_type ==  CONVERT_TYPE_YCVCR:
                     image_data = [numpy.asarray(i).ravel() for i in
                                   image.convert(convert_type).split()]
                 else:
@@ -93,7 +98,48 @@ def load_images(hotornot_csv_file_name, convert_type='L'):
     logging.debug('validation data shape is: %s' % str(validation_data[0].shape))
     logging.debug('test data shape: %s' % str(test_data[0].shape))
 
-    return train_data, validation_data, test_data, test_data_file_names
+    if validation:
+        return train_data, validation_data, test_data, test_data_file_names
+    else:
+        return train_data, test_data
+
+def old_load_images(hotornot_file_csv):
+    """
+    Assumes the images are in an immediate sub-directory if the csv file.
+    """
+    logging.info('loading data from %s' % hotornot_file_csv)
+    hotornot_dir = os.path.join(os.path.dirname(__file__),
+            '../../../data/eccv2010_beauty_data/hotornot_face')
+    train_data = [[], []]
+    test_data = [[], []]
+    test_data_file_names = []
+    with open(hotornot_file_csv) as hotornot_csv:
+        reader = csv.reader(hotornot_csv)
+        def append_row_to_data(data, row):
+            def get_array_from_image(image_name):
+                image = Image.open(os.path.join(hotornot_dir, image_name))
+                luma = image.convert('L')
+                return numpy.asarray(luma).ravel()
+            # append the x_data
+            data[0].append(get_array_from_image(row[0]))
+            data[1].append(row[1])
+        for row in reader:
+            if row[2] == 'train':
+                append_row_to_data(train_data, row)
+            elif row[2] == 'test':
+                append_row_to_data(test_data, row)
+                test_data_file_names.append(row[0])
+            else:
+                raise ValueError('only test or train allowed in input')
+    
+    train_data[0] = numpy.asarray(train_data[0], dtype=theano.config.floatX).T
+    train_data[1] = numpy.asarray(train_data[1], dtype=theano.config.floatX).T
+    test_data[0] = numpy.asarray(test_data[0], dtype=theano.config.floatX).T
+    test_data[1] = numpy.asarray(test_data[1], dtype=theano.config.floatX).T
+    logging.debug('train data shape: %s' % str(train_data[0].shape))
+    logging.debug('test data shape: %s' %  str(test_data[0].shape))
+
+    return train_data, test_data, test_data_file_names 
 
 def get_means_and_ranges(data):
     means = data.mean()
@@ -101,7 +147,7 @@ def get_means_and_ranges(data):
     return means, ranges
 
 def normalize_zero_mean(data, means, ranges):
-    return (numpy.divide(numpy.subtract(data, means), ranges))
+    return (data - means) / ranges
 
 def trim_to_batch_size(data, batch_size):
     """
@@ -135,11 +181,11 @@ def append_timestamp_to_file_name(file_name):
     return ('%s-%s' % (file_name, d_time))
 
 def plot_correlation(human_scores, machine_scores, images, title, file_name, style='ro', 
-                     show=False):
+                     show=False, pearsons=None):
     pyplot.clf()
     #pyplot.plot(human_scores, machine_scores, style)
     import Image
-    pyplot.axis([-4, 4, -4, 4])
+    pyplot.axis([-3, 3, -3, 3])
     pyplot.xlabel('human score')
     pyplot.ylabel('machine score')
     pyplot.title(title, fontsize='small')
@@ -149,6 +195,8 @@ def plot_correlation(human_scores, machine_scores, images, title, file_name, sty
             extent=(human_scores[i] + 0.2, human_scores[i] - 0.2,
                 machine_scores[i] + 0.2, machine_scores[i] - 0.2))
         print(image, machine_scores[i])
+    if pearsons:
+        pyplot.text(1,  -3.5, 'pearsons = %0.3f' % (pearsons[0],))
     save_plot(file_name)
     if show:
         pyplot.show()

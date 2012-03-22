@@ -53,7 +53,7 @@ def prepend_ones(data):
 
 def train_nn(data_file_name, reg_lambda=0.01, learning_rate=0.01, n_eigs=100, 
         n_neurons_per_layer=100, batch_size=100, display=True):
-    train_data, test_data = load_images(data_file_name)
+    train_data, test_data, file_names = old_load_images(data_file_name)
     eig_face = EigenFace.from_file(train_data[0], data_file_name, n_eigs)
     train_data[0] = get_face_space(data_file_name, 'train_x', train_data[0],
                                    eig_face)
@@ -95,7 +95,7 @@ def train_nn(data_file_name, reg_lambda=0.01, learning_rate=0.01, n_eigs=100,
     old_cost = 0
     iterations = 0
     logging.info('beginning stochastic gradient descent')
-    while ((abs(current_cost- old_cost)) > 0.000001):
+    while ((abs(current_cost- old_cost)) > 0.001):
         old_cost = current_cost
         current_cost = numpy.asarray(train_model())
         if iterations % 10 == 0:
@@ -115,9 +115,9 @@ def train_nn(data_file_name, reg_lambda=0.01, learning_rate=0.01, n_eigs=100,
     # Save our weights should we ever need them again
     plot_title_data = (n_neurons_per_layer, learning_rate, reg_lambda,
             pearsons[0])
-    plot_correlation(real_scores, predictions, 'neural network with %d neurons' \
+    plot_correlation(real_scores, predictions, file_names, 'neural network with %d neurons' \
             'learning rate %f and reg-lambda %f pearsons %f' % plot_title_data,
-            'nn', show=True)
+            'nn', show=True, pearsons=pearsons)
 
 def build_argument_parser():
     argument_parser = ArgumentParser()
