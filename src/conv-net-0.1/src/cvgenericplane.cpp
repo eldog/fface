@@ -70,12 +70,12 @@ CvGenericPlane::CvGenericPlane ( std::string id, CvSize fmapsz, CvSize neurosz )
 	m_neurosz = neurosz;
 	
 	// Create null feature map
-	m_fmap = cvCreateMat(fmapsz.height,fmapsz.width,CV_64FC1);
+	m_fmap = cvCreateMat(fmapsz.height,fmapsz.width,CV_32FC1);
 	assert( m_fmap != NULL );
 
 	cvSetZero(m_fmap);
 	
-	m_weight = vector<double> ();
+	m_weight = vector<float> ();
 	m_pplane = vector<CvGenericPlane *> ();
 }
 
@@ -156,7 +156,7 @@ int CvGenericPlane::setfmap ( CvArr * source )
 		&& cvGetSize(source).height == height) )
 		return 0;
 	
-	// Copy the image into matrix (and convert from bytes to doubles).
+	// Copy the image into matrix (and convert from bytes to floats).
 	cvConvertScale(source,m_fmap);
 		
 	return 1;
@@ -172,7 +172,7 @@ CvMat * CvGenericPlane::getfmap ( )
 
 /*! The method explicitly sets the weights of the neuron
  */
-int CvGenericPlane::setweight(std::vector<double> &weights)
+int CvGenericPlane::setweight(std::vector<float> &weights)
 {
 	// Setting weights is only allowed when we are connected
 	if (!m_connected) return 0;

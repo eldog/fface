@@ -96,7 +96,7 @@ CvMat * CvRBFPlane::fprop ()
 		for (int x=0; x<m_fmapsz.width; x++)
 		{
 	
-			double sum = 0.0; 
+			float sum = 0.0; 
 			int w = 0;
 			for (int i = 0; i < m_pplane.size(); i++)
 			{
@@ -108,14 +108,14 @@ CvMat * CvRBFPlane::fprop ()
 				{
 					for (int k=0; k<m_neurosz.width; k++)
 					{
-						double dist = (m_weight[w++]-cvmGet(fmap, y+j, x+k));
+						float dist = (m_weight[w++]-cvmGet(fmap, y+j, x+k));
 						sum += dist*dist;
 					}
 				}
 			}
 
 			// Sigmoid
-			double val = DQstdsigmoid(sum);
+			float val = DQstdsigmoid(sum);
 
 			// Update the value at feature map
 			cvmSet(m_fmap,y,x,val);
@@ -158,7 +158,7 @@ string CvRBFPlane::toString ( )
 
 /*! The method explicitly sets the weights of the neuron
  */
-int CvRBFPlane::setweight(std::vector<double> &weights)
+int CvRBFPlane::setweight(std::vector<float> &weights)
 {	
 	// Check that the number of weights passed is sane
 	if (weights.size() != m_neurosz.width*m_neurosz.height*m_pplane.size())

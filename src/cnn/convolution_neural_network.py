@@ -29,6 +29,7 @@ LEARNING_RATE = 0.0001
 BATCH_SIZE = 25
 N_EPOCHS = 1000
 N_HIDDEN_UNITS = 500
+N_FILTERS = 48
 
 class ConvPoolLayer(object):
     """
@@ -86,15 +87,15 @@ class ConvPoolLayer(object):
                                      filter_shape=filter_shape,
                                      image_shape=image_shape) \
                    + self.b_c.dimshuffle('x', 0, 'x', 'x')
-        sigmoid_conv_out = T.tanh(self.conv_out + self.b.dimshuffle('x', 0, 'x',
-                           'x'))
+        sigmoid_conv_out = T.tanh(self.conv_out) #+ self.b.dimshuffle('x', 0, 'x',
+                          # 'x'))
         #sigmoid_conv_out = self.conv_out + self.b.dimshuffle('x', 0, 'x',
         #                          'x')
         pooled_out = T.signal.downsample.max_pool_2d(sigmoid_conv_out, 
                                                      ds=pool_size,
                                                      ignore_border=True)
         self.output = pooled_out
-        self.params = [self.W, self.b, self.b_c]
+        self.params = [self.W, self.b_c]
 
     def to_xml(self, document, parent):
         # iterate over the feature maps
@@ -118,11 +119,11 @@ class ConvPoolLayer(object):
             connection.setAttribute('to', 'src')
             plane.appendChild(connection)
             raw_weight = self.W.get_value()[i]
-            print ('raw')
-            print(raw_weight)
+            #print ('raw')
+            #print(raw_weight)
             weights = numpy.rot90(raw_weight[0],2)
-            print('rot90')
-            print(weights)
+            #print('rot90')
+            #print(weights)
             weights_text = ' '.join(map(str,
                 weights.flatten().tolist()))
             connection_text = document.createTextNode(weights_text)
@@ -280,6 +281,7 @@ def train_cnn(data_file_name,
               n_epochs=N_EPOCHS, 
               n_hidden_units=N_HIDDEN_UNITS,
               convert_type=utils.CONVERT_TYPE_L,
+              n_filters=N_FILTERS,
               normalise=True,
               display=True):
     train_data, validation_data, test_data, test_data_file_names = load_images(data_file_name)
@@ -301,9 +303,10 @@ def train_cnn(data_file_name,
         means, ranges = get_means_and_ranges(train_data[0])
         logging.info('mean %s %s', means, ranges)
         train_data[0] = normalize_zero_mean(train_data[0], means, ranges)
-        print(train_data[0][-1])
-        print(train_data[1][-1])
         test_data[0] = normalize_zero_mean(test_data[0], means, ranges)
+        print(test_data[0][-1])
+        print(test_data[1][-1])
+        print(test_data_file_names[-1])
         if do_validation:
             validation_data[0] = normalize_zero_mean(validation_data[0], 
                                                      means, 
@@ -337,7 +340,7 @@ def train_cnn(data_file_name,
                             x, 
                             batch_size, 
                             image_shape=(batch_size, n_channels, 128, 128),
-                            filter_shape=(48, n_channels, 9, 9),
+                            filter_shape=(n_filters, n_channels, 9, 9),
                             pool_size=(8,8))
 
     cost = cnn.regression.cost(y) + reg_lambda_2 * cnn.l2
@@ -397,6 +400,9 @@ def train_cnn(data_file_name,
     costs_validations = []
     costs_tests = []
     costs_pearsons = []
+    
+    random.seed(9876)
+
     while (epochs < n_epochs) and (not done_looping):
         old_cost = current_cost
         sum_cost = 0
@@ -455,9 +461,10 @@ def train_cnn(data_file_name,
     logging.info('testing model')
     predictions = []
     sum_errors = 0
+    
     for batch_index in  xrange(n_testing_batches):
         error, next_predictions = test_model(batch_index)
-        predictions += next_predictions[0].tolist()
+        predictions.extend(next_predictions[0].tolist())
         sum_errors += error
 
     # save cnn as xml
@@ -488,6 +495,9 @@ def train_cnn(data_file_name,
     #print('ranges', ranges)
 
     # ONE LAST THING
+    print(test_data[0].get_value()[-1])
+    print(test_data[1].get_value()[-1])
+    print(test_data_file_names[-1])
 
     return pearsons[0]
 
@@ -514,6 +524,9 @@ def build_argument_parser():
     argument_parser.add_argument('--n-hidden-units',
                                  type=int,
                                  default=N_HIDDEN_UNITS)
+    argument_parser.add_argument('--n-filters',
+                                 type=int,
+                                 default=N_FILTERS)
     argument_parser.add_argument('--convert-type',
                                  type=str,
                                  choices=utils.CONVERT_TYPES,
@@ -545,6 +558,7 @@ def main(argv=None):
                   reg_lambda_2=args.reg_lambda_2,
                   n_epochs=args.n_epochs,
                   n_hidden_units=args.n_hidden_units,
+                  n_filters=args.n_filters,
                   convert_type=args.convert_type,
                   normalise=args.no_normalise,
                   display=args.display))

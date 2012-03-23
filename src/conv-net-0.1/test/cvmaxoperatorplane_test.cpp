@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE( full_fprop_test )
     CvSourcePlane sourcePlane = createTestCvSourcePlane();
     
     // test the basic forward propagation
-    double sourcePlaneFeatureMapValues[] = 
+    float sourcePlaneFeatureMapValues[] = 
                         {
                               0,   1,   2,   3,   4,   5,   6,   7,
                               8,   9,  10,  11,  12,  13,  14,  15,
@@ -59,17 +59,17 @@ BOOST_AUTO_TEST_CASE( full_fprop_test )
                                                                 cvSize(6, 6),
                                                                 cvSize(3, 3));
      // Don't forget the bias
-    double convolutionPlaneWeights[] = {
+    float convolutionPlaneWeights[] = {
                                           0.1,
                                           0.1,   0.1,   0.1,
                                           0.1,   0.1,   0.1,
                                           0.1,   0.1,   0.1
                                       };
-    std::vector<double> weights(convolutionPlaneWeights,
+    std::vector<float> weights(convolutionPlaneWeights,
                                 convolutionPlaneWeights 
                                 + 
                                 sizeof(convolutionPlaneWeights)
-                                / sizeof(double));
+                                / sizeof(float));
 
     CHECK_MESSAGE(convolutionPlane->connto(parentPlanes), 1);
     CHECK_MESSAGE(convolutionPlane->setweight(weights), 1);
@@ -84,17 +84,17 @@ BOOST_AUTO_TEST_CASE( full_fprop_test )
     std::vector<CvGenericPlane*> regressionParentPlanes;
     regressionParentPlanes.push_back(maxOperatorPlane);
     
-    double regressionPlaneWeights[] = {
+    float regressionPlaneWeights[] = {
                                               1,
                                               1,   1,   1,
                                               1,   1,   1,
                                               1,   1,   1
                                       };
-    std::vector<double> regWeights(regressionPlaneWeights,
+    std::vector<float> regWeights(regressionPlaneWeights,
                                     regressionPlaneWeights 
                                     + 
                                     sizeof(regressionPlaneWeights)
-                                    / sizeof(double));
+                                    / sizeof(float));
 
 
     CvRegressionPlane* regressionPlane = 
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE( cvconvolutionplane_test )
     CvSourcePlane sourcePlane = createTestCvSourcePlane();
     
     // test the basic forward propagation
-    double sourcePlaneFeatureMapValues[] = 
+    float sourcePlaneFeatureMapValues[] = 
                         {
                               0,   1,   2,   3,   4,   5,   6,   7,
                               8,   9,  10,  11,  12,  13,  14,  15,
@@ -154,17 +154,17 @@ BOOST_AUTO_TEST_CASE( cvconvolutionplane_test )
                                                                 cvSize(6, 6),
                                                                 cvSize(3, 3));
      // Don't forget the bias
-    double convolutionPlaneWeights[] = {
+    float convolutionPlaneWeights[] = {
                                           0.1,
                                           0.1,   0.1,   0.1,
                                           0.1,   0.1,   0.1,
                                           0.1,   0.1,   0.1
                                       };
-    std::vector<double> weights(convolutionPlaneWeights,
+    std::vector<float> weights(convolutionPlaneWeights,
                                 convolutionPlaneWeights 
                                 + 
                                 sizeof(convolutionPlaneWeights)
-                                / sizeof(double));
+                                / sizeof(float));
 
     CHECK_MESSAGE(convolutionPlane->connto(parentPlanes), 1);
     CHECK_MESSAGE(convolutionPlane->setweight(weights), 1)
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE( cvregressionplane_test )
         CvSourcePlane* sourcePlane = new CvSourcePlane("test_source_plane",
                                                        cvSize(3, 3));
         // test the basic forward propagation
-        double sourcePlaneFeatureMapValues[] = {
+        float sourcePlaneFeatureMapValues[] = {
                                                   1,   1,   1,
                                                   1,   1,   1,
                                                   1,   1,   1
@@ -201,17 +201,17 @@ BOOST_AUTO_TEST_CASE( cvregressionplane_test )
         parentPlanes.push_back(sourcePlane);
 
         // Don't forget the bias
-        double regressionPlaneWeights[] = {
+        float regressionPlaneWeights[] = {
                                               1,
                                               1,   1,   1,
                                               1,   1,   1,
                                               1,   1,   1
                                           };
-        std::vector<double> weights(regressionPlaneWeights,
+        std::vector<float> weights(regressionPlaneWeights,
                                     regressionPlaneWeights 
                                     + 
                                     sizeof(regressionPlaneWeights)
-                                    / sizeof(double));
+                                    / sizeof(float));
 
         CvRegressionPlane* regressionPlane 
                     = new CvRegressionPlane("test_regression_plane",
@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE( cvregressionplane_test )
 
         parentPlanes.push_back(sourcePlane);
         // Don't forget the bias
-        double regressionPlaneWeights1[] = {
+        float regressionPlaneWeights1[] = {
                                               1,
                                               1,   1,   1,
                                               1,   1,   1,
@@ -231,11 +231,11 @@ BOOST_AUTO_TEST_CASE( cvregressionplane_test )
                                               1,   1,   1,
                                               1,   1,   1
                                           };
-        std::vector<double> weights1(regressionPlaneWeights1,
+        std::vector<float> weights1(regressionPlaneWeights1,
                                     regressionPlaneWeights1 
                                     + 
                                     sizeof(regressionPlaneWeights1)
-                                    / sizeof(double));
+                                    / sizeof(float));
 
         CvRegressionPlane* regressionPlane1
                     = new CvRegressionPlane("test_regrssion_plane2",
@@ -251,7 +251,7 @@ BOOST_AUTO_TEST_CASE( cvregressionplane_test )
 
     // Test different valued weigths etc with one parent.
     CvSourcePlane* multiValSrcPlane = new CvSourcePlane("m_v_sp", cvSize(2, 2));
-    double multiValSrcPlaneVal[] = {
+    float multiValSrcPlaneVal[] = {
                                     1.0, 2.0,
                                     3.0, 4.0
                                  };
@@ -264,16 +264,16 @@ BOOST_AUTO_TEST_CASE( cvregressionplane_test )
     std::vector<CvGenericPlane*> multiValRegPlaneParents;
     multiValRegPlaneParents.push_back(multiValSrcPlane);
     
-    double multiValRegPlaneWeightVals[] = {
+    float multiValRegPlaneWeightVals[] = {
                                             2.0,
                                             6.0, 7.0,
                                             8.0, 9.0
                                         };
-    std::vector<double> multiValRegPlaneWeights(multiValRegPlaneWeightVals,
+    std::vector<float> multiValRegPlaneWeights(multiValRegPlaneWeightVals,
                                                 multiValRegPlaneWeightVals
                                                 +
                                                 sizeof(multiValRegPlaneWeightVals)
-                                                / sizeof(double));
+                                                / sizeof(float));
     CvRegressionPlane* multiValRegPlane = new CvRegressionPlane("m_v_rp",
                                                                 cvSize(2, 2));
     CHECK_MESSAGE(multiValRegPlane->connto(multiValRegPlaneParents), 1);
@@ -282,7 +282,7 @@ BOOST_AUTO_TEST_CASE( cvregressionplane_test )
 
     // test with multiple parents
     CvSourcePlane* multiValSrcPlane2 = new CvSourcePlane("m_v_sp_2", cvSize(2, 2));
-    double multiValSrcPlaneVal2[] = {
+    float multiValSrcPlaneVal2[] = {
                                       2.0, 4.0,
                                       6.0, 8.0
                                     };
@@ -293,18 +293,18 @@ BOOST_AUTO_TEST_CASE( cvregressionplane_test )
     CHECK_MESSAGE(multiValSrcPlane2->setfmap(&multiValSrcPlaneValMat2), 1);
     multiValRegPlaneParents.push_back(multiValSrcPlane2);
 
-    double multiValRegPlaneWeightVals2[] = {
+    float multiValRegPlaneWeightVals2[] = {
                                             2.0,
                                             6.0, 7.0,
                                             8.0, 9.0,
                                             11.0, 12.0,
                                             13.0, 14.0
                                             };
-    std::vector<double> multiValRegPlaneWeights2(multiValRegPlaneWeightVals2,
+    std::vector<float> multiValRegPlaneWeights2(multiValRegPlaneWeightVals2,
                                                 multiValRegPlaneWeightVals2
                                                 +
                                                 sizeof(multiValRegPlaneWeightVals2)
-                                                / sizeof(double));
+                                                / sizeof(float));
     CvRegressionPlane* multiValRegPlane2= new CvRegressionPlane("m_v_rp2",
                                                                 cvSize(2, 2));
     CHECK_MESSAGE(multiValRegPlane2->connto(multiValRegPlaneParents), 1);
@@ -321,7 +321,7 @@ BOOST_AUTO_TEST_CASE( cvmaxoperatorplane_test )
     CvSourcePlane sourcePlane = createTestCvSourcePlane();
     
     // test the basic forward propagation
-    double sourcePlaneFeatureMapValues[] = 
+    float sourcePlaneFeatureMapValues[] = 
                         {
                               0,   1,   2,   3,   4,   5,   6,   7,
                               8,   9,  10,  11,  12,  13,  14,  15,

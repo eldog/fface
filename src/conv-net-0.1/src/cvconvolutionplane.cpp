@@ -86,7 +86,7 @@ CvMat * CvConvolutionPlane::fprop ()
         for (int x=0; x<m_fmapsz.width; x++)
         {
 
-            double sum = m_weight[0]; // bias
+            float sum = m_weight[0]; // bias
             int w = 0;
             for (int i = 0; i < m_pplane.size(); i++)
             {
@@ -103,14 +103,13 @@ CvMat * CvConvolutionPlane::fprop ()
             }
 
             // "Fast Sigmoid Approximation" trick
-            //double val = DQstdsigmoid(sum);
+            //float val = DQstdsigmoid(sum);
 
 // 			// Slow sigmoid, but precise.
-            //double val = 1.71593428*tanh(0.66666666*sum);
-            double val = tanh(sum);
-            //double val = sum;
+            //float val = 1.71593428*tanh(0.66666666*sum);
+            float val = tanh(sum);
+            //float val = sum;
             // Update the value at feature map
-            //cout << val << endl;
             cvmSet(m_fmap,y,x,val);
         }
     }
@@ -158,7 +157,7 @@ string CvConvolutionPlane::toString ( )
  * The vector should contain all weights for ALL connections 
  * \return status of operation
  */
-int CvConvolutionPlane::setweight(std::vector<double> &weights)
+int CvConvolutionPlane::setweight(std::vector<float> &weights)
 {	
 	// Check that the number of weights passed is sane
 	if (weights.size() != (m_neurosz.width*m_neurosz.height*m_pplane.size()+1))

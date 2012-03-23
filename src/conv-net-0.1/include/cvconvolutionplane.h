@@ -73,7 +73,7 @@ public:
 		virtual std::string toString ( );
 
 		//! Explicitly set the weights for the plane's neuron
-		virtual int setweight(std::vector<double> &weights);
+		virtual int setweight(std::vector<float> &weights);
 };
 
 #endif // CVCONVOLUTIONPLANE_H

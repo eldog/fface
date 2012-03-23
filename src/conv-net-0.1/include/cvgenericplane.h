@@ -84,7 +84,7 @@ public:
 		virtual std::string toString ( ) = 0;
 
 		//! Explicitly set the weights for the plane's neuron
-		virtual int setweight(std::vector<double> &weights);
+		virtual int setweight(std::vector<float> &weights);
 
 		//! Get a pointer to plane's feature map
 		CvMat * getfmap ( );
@@ -100,13 +100,13 @@ protected:
 		std::vector<CvGenericPlane *> m_pplane; //!< Links to parents (for fprop)
 		std::vector<CvGenericPlane *> m_cplane; //!< Links to childs (for bprop)
 		std::vector<CvMat *> m_pfmap; //!< Cached pointers to parents feature maps (for fprop)
-		std::vector<double> m_delta; //!< Deltas (will be used for bprop)
+		std::vector<float> m_delta; //!< Deltas (will be used for bprop)
 	
 		CvMat *m_fmap; //!< Container of feature map for this plane
 		CvSize m_fmapsz; //!< Size of feature map
 		CvSize m_neurosz;//!< Neuron window
 
-		std::vector<double> m_weight; //!< Container for weights of plane's neuron 
+		std::vector<float> m_weight; //!< Container for weights of plane's neuron 
 		int m_connected; //!< Flag specifying whether we are already connected to parents or not
 };
 

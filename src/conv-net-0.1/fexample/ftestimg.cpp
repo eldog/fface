@@ -128,28 +128,37 @@ int main(int argc, char *argv[])
             //                            sourcePlaneFeatureMapValues);
 
 
-            CvMat *cvmat = cvCreateMat(img->height, img->width, CV_64FC1);
-            cvConvert(img, cvmat);
+            CvMat *cvmat = cvCreateMat(img->height, img->width, CV_32FC1);
 
+            cvConvert(img, cvmat);
+            cv::Mat floatMat = cvmat;
+            floatMat -= 108.08409242f;
+            floatMat /= 255.0f;
+            //floatMat -= 109.799621582;
+            //floatMat /= 234.0f;
+            //
             // normalise it
             //matImg = (matImg - 107.609341755);// / 255.0;
             // cout << matImg << endl;
             IplImage newImage = matImg;
 
-            //cout << setprecision( 3 ) << right << fixed;
+
+            cout << setprecision( 8 ) << right << fixed;
+            cout << (double) cvmGet(cvmat, 0, 0) << endl;
+            //cout << (double) cvmGet(cvmat, 127, 127) << endl;
             //for ( int row = 0; row < 128; ++ row )
-            //{
+           // {
             //    for ( int col = 0; col < 128; ++ col )
-            //    {
-            //        cout << setw( 5 ) 
-            //             << (double)cvmGet( cvmat, row, col ) 
-            //             << " ";
-            //    }
-            //    cout << endl;
+             //   {
+             //       cout << setw( 5 ) 
+             //            << (double)cvmGet( cvmat, row, col ) 
+             //            << " ";
+             //   }
+             //  cout << endl;
             //}
             // Forward propagate the grayscale (8 bit) image and get the value
             ostringstream val;
-            val << (double) net.fprop(cvmat);
+            val << (float) net.fprop(cvmat);
             cout << val.str() << endl;
             // Make image colorful
             cvCvtColor(&newImage,colorimg,CV_GRAY2RGB);

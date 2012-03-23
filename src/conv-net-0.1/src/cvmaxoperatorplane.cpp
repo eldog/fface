@@ -85,7 +85,7 @@ CvMat * CvMaxOperatorPlane::fprop()
     {
         for (int col = 0; col < m_fmapsz.width / m_neurosz.width; col++)
         {
-            double max_so_far = -1000.0;
+            float max_so_far = -1000.0f;
             // Probably only going to be one input feature map anyway
             for (int pfmap_index = 0; pfmap_index < m_pplane.size(); pfmap_index++)
             {
@@ -94,7 +94,7 @@ CvMat * CvMaxOperatorPlane::fprop()
                {
                    for (int filter_col = 0; filter_col < m_neurosz.width; filter_col++)
                    {
-                       double fmap_value = cvmGet(fmap, 
+                       float fmap_value = cvmGet(fmap, 
                                                   (row * m_neurosz.height)
                                                   + filter_row, 
                                                   (col * m_neurosz.width)
@@ -142,7 +142,7 @@ string CvMaxOperatorPlane::toString ( )
 
 /*! The method explicitly sets the weights of the neuron
  */
-int CvMaxOperatorPlane::setweight(std::vector<double> &weights)
+int CvMaxOperatorPlane::setweight(std::vector<float> &weights)
 {	
 	// Check that the number of weights passed is sane
 	if (weights.size() != 2 )

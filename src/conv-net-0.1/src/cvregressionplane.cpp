@@ -85,7 +85,7 @@ CvMat* CvRegressionPlane::fprop()
     assert( m_connected );
     // Start with the bias
     int w_index = 0;
-    double sum = m_weight[w_index];
+    float sum = m_weight[w_index];
     for (int pfmap_index = 0; pfmap_index < m_pplane.size(); pfmap_index++)
     {
         CvMat *fmap = m_pfmap[pfmap_index];
@@ -141,7 +141,7 @@ string CvRegressionPlane::toString ( )
  * The vector should contain all weights for ALL connections 
  * \return status of operation
  */
-int CvRegressionPlane::setweight(std::vector<double> &weights)
+int CvRegressionPlane::setweight(std::vector<float> &weights)
 {	
 	// Check that the number of weights passed is sane
 	if (weights.size() != (m_neurosz.width*m_neurosz.height*m_pplane.size()+1))

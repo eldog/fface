@@ -99,7 +99,7 @@ typedef struct
 	int isbias;			//!< bit mask for "bias" tag
 	int isinfo;			//!< bit mask for "info" tag
 	int isconnection;		//!< bit mask for "connection" tag
-	vector<double> cur_weight;	//!< Weights for current plane
+	vector<float> cur_weight;	//!< Weights for current plane
 	vector<CvGenericPlane *> cur_parents; //!< Parents for current plane
 	string cur_type;		//!< Current plane type
 	
@@ -346,7 +346,7 @@ static void XMLCALL icvXML_CharacterDataHandler(void *userData, const XML_Char *
 	string weights(s,len);
 	istringstream iss(weights);
 	
-	double w;
+	float w;
 	if (data.isbias & INSIDE_TAG) 
 	// Process <bias> tag data
 	{
@@ -398,7 +398,7 @@ int parse(string xml, string &creator,
 		0, // int isinfo;
 		0, // int isconnection;
 		
-		vector<double> (), //vector<double> cur_weight;	
+		vector<float> (), //vector<float> cur_weight;	
 		vector<CvGenericPlane *> (), // vector<CvGenericPlane *> cur_parents; 
 		"", // string cur_type;
 		parser

@@ -93,7 +93,7 @@ CvMat * CvSubSamplingPlane::fprop ( )
 	{
 		for (int x=0; x<m_fmapsz.width; x++)
 		{
-			double sum = 0; 
+			float sum = 0; 
 			
 			// Calculate the sum
 			for (int i = 0; i < m_pplane.size(); i++)
@@ -112,8 +112,8 @@ CvMat * CvSubSamplingPlane::fprop ( )
 			}
 
 			// Standard Sigmoid
-// 			double val = 1.71593428*tanh(0.66666666*(m_weight[0]+m_weight[1]*sum));
-			double val = DQstdsigmoid(m_weight[0]+m_weight[1]*sum);
+// 			float val = 1.71593428*tanh(0.66666666*(m_weight[0]+m_weight[1]*sum));
+			float val = DQstdsigmoid(m_weight[0]+m_weight[1]*sum);
 
 			// Update the value at feature map
 			cvmSet(m_fmap,y,x,val);
@@ -150,7 +150,7 @@ string CvSubSamplingPlane::toString ( )
 
 /*! The method explicitly sets the weights of the neuron
  */
-int CvSubSamplingPlane::setweight(std::vector<double> &weights)
+int CvSubSamplingPlane::setweight(std::vector<float> &weights)
 {	
 	// Check that the number of weights passed is sane
 	if (weights.size() != 2 )
